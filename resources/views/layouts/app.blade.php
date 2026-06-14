@@ -99,40 +99,67 @@
                                     <div class="col ps-0"><hr class="mb-0 navbar-vertical-divider" /></div>
                                 </div>
 
-                                <a class="nav-link {{ request()->routeIs('contribuables.*') ? 'active' : '' }}" href="#">
+                                @php
+                                    $gestionFiscaleActif = request()->routeIs('contribuables.*')
+                                        || request()->routeIs('etablissements.*')
+                                        || request()->routeIs('exercices-fiscaux.*')
+                                        || request()->routeIs('emissions.*')
+                                        || request()->routeIs('recouvrements.*');
+                                @endphp
+                                <a class="nav-link dropdown-indicator {{ $gestionFiscaleActif ? '' : 'collapsed' }}"
+                                   href="#gestionFiscaleCollapse"
+                                   data-bs-toggle="collapse"
+                                   aria-expanded="{{ $gestionFiscaleActif ? 'true' : 'false' }}"
+                                   aria-controls="gestionFiscaleCollapse">
                                     <div class="d-flex align-items-center">
-                                        <span class="nav-link-icon"><span class="fas fa-users"></span></span>
-                                        <span class="nav-link-text ps-1">Contribuables</span>
+                                        <span class="nav-link-icon"><span class="fas fa-balance-scale"></span></span>
+                                        <span class="nav-link-text ps-1">Gestion fiscale</span>
                                     </div>
                                 </a>
-
-                                <a class="nav-link {{ request()->routeIs('etablissements.*') ? 'active' : '' }}" href="#">
-                                    <div class="d-flex align-items-center">
-                                        <span class="nav-link-icon"><span class="fas fa-store"></span></span>
-                                        <span class="nav-link-text ps-1">Établissements</span>
-                                    </div>
-                                </a>
-
-                                <a class="nav-link {{ request()->routeIs('exercices-fiscaux.*') ? 'active' : '' }}" href="#">
-                                    <div class="d-flex align-items-center">
-                                        <span class="nav-link-icon"><span class="fas fa-calendar-alt"></span></span>
-                                        <span class="nav-link-text ps-1">Exercices fiscaux</span>
-                                    </div>
-                                </a>
-
-                                <a class="nav-link {{ request()->routeIs('emissions.*') ? 'active' : '' }}" href="#">
-                                    <div class="d-flex align-items-center">
-                                        <span class="nav-link-icon"><span class="fas fa-file-invoice"></span></span>
-                                        <span class="nav-link-text ps-1">Émission des taxes</span>
-                                    </div>
-                                </a>
-
-                                <a class="nav-link {{ request()->routeIs('recouvrements.*') ? 'active' : '' }}" href="#">
-                                    <div class="d-flex align-items-center">
-                                        <span class="nav-link-icon"><span class="fas fa-credit-card"></span></span>
-                                        <span class="nav-link-text ps-1">Recouvrements</span>
-                                    </div>
-                                </a>
+                                <div class="collapse {{ $gestionFiscaleActif ? 'show' : '' }}" id="gestionFiscaleCollapse">
+                                    <ul class="nav flex-column ms-3">
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ request()->routeIs('contribuables.*') ? 'active' : '' }}" href="{{ route('contribuables.index') }}">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="nav-link-icon"><span class="fas fa-users"></span></span>
+                                                    <span class="nav-link-text ps-1">Contribuables</span>
+                                                </div>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ request()->routeIs('etablissements.*') ? 'active' : '' }}" href="{{ route('etablissements.index') }}">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="nav-link-icon"><span class="fas fa-store"></span></span>
+                                                    <span class="nav-link-text ps-1">Établissements</span>
+                                                </div>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ request()->routeIs('exercices-fiscaux.*') ? 'active' : '' }}" href="{{ route('exercices-fiscaux.index') }}">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="nav-link-icon"><span class="fas fa-calendar-alt"></span></span>
+                                                    <span class="nav-link-text ps-1">Exercices fiscaux</span>
+                                                </div>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ request()->routeIs('emissions.*') ? 'active' : '' }}" href="{{ route('emissions.index') }}">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="nav-link-icon"><span class="fas fa-file-invoice"></span></span>
+                                                    <span class="nav-link-text ps-1">Émission des taxes</span>
+                                                </div>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ request()->routeIs('recouvrements.*') ? 'active' : '' }}" href="{{ route('recouvrements.index') }}">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="nav-link-icon"><span class="fas fa-credit-card"></span></span>
+                                                    <span class="nav-link-text ps-1">Recouvrements</span>
+                                                </div>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
                             </li>
 
                             {{-- ===== Contrôle fiscal ===== --}}
@@ -142,14 +169,16 @@
                                     <div class="col ps-0"><hr class="mb-0 navbar-vertical-divider" /></div>
                                 </div>
 
-                                <a class="nav-link {{ request()->routeIs('controle-fiscal.*') ? 'active' : '' }}" href="#">
+                                <a class="nav-link {{ request()->routeIs('controle-fiscal.*') ? 'active' : '' }}"
+                                   href="{{ route('controle-fiscal.index') }}">
                                     <div class="d-flex align-items-center">
                                         <span class="nav-link-icon"><span class="fas fa-shield-alt"></span></span>
                                         <span class="nav-link-text ps-1">Contrôle &amp; Sanctions</span>
                                     </div>
                                 </a>
 
-                                <a class="nav-link {{ request()->routeIs('exonerations.*') ? 'active' : '' }}" href="#">
+                                <a class="nav-link {{ request()->routeIs('exonerations.*') ? 'active' : '' }}"
+                                   href="{{ route('exonerations.index') }}">
                                     <div class="d-flex align-items-center">
                                         <span class="nav-link-icon"><span class="fas fa-percent"></span></span>
                                         <span class="nav-link-text ps-1">Exonérations</span>
@@ -164,14 +193,16 @@
                                     <div class="col ps-0"><hr class="mb-0 navbar-vertical-divider" /></div>
                                 </div>
 
-                                <a class="nav-link {{ request()->routeIs('dossiers.*') ? 'active' : '' }}" href="#">
+                                <a class="nav-link {{ request()->routeIs('dossiers.*') ? 'active' : '' }}"
+                                   href="{{ route('dossiers.index') }}">
                                     <div class="d-flex align-items-center">
                                         <span class="nav-link-icon"><span class="fas fa-folder-open"></span></span>
-                                        <span class="nav-link-text ps-1">Dossiers administratifs</span>
+                                        <span class="nav-link-text ps-1">Dossier administratif</span>
                                     </div>
                                 </a>
 
-                                <a class="nav-link {{ request()->routeIs('convocations.*') ? 'active' : '' }}" href="#">
+                                <a class="nav-link {{ request()->routeIs('convocations.*') ? 'active' : '' }}"
+                                   href="{{ route('convocations.index') }}">
                                     <div class="d-flex align-items-center">
                                         <span class="nav-link-icon"><span class="fas fa-envelope"></span></span>
                                         <span class="nav-link-text ps-1">Convocations</span>
@@ -186,24 +217,59 @@
                                     <div class="col ps-0"><hr class="mb-0 navbar-vertical-divider" /></div>
                                 </div>
 
-                                <a class="nav-link {{ request()->routeIs('referentiel.territorial.*') ? 'active' : '' }}" href="#">
+                                <a class="nav-link {{ request()->routeIs('referentiel.territorial.*') ? 'active' : '' }}"
+                                   href="{{ route('referentiel.territorial.index') }}">
                                     <div class="d-flex align-items-center">
                                         <span class="nav-link-icon"><span class="fas fa-map-marker-alt"></span></span>
                                         <span class="nav-link-text ps-1">Territorial</span>
                                     </div>
                                 </a>
 
-                                <a class="nav-link {{ request()->routeIs('referentiel.activites.*') ? 'active' : '' }}" href="#">
+                                <a class="nav-link {{ request()->routeIs('referentiel.activites.*') ? 'active' : '' }}"
+                                   href="{{ route('referentiel.activites.index') }}">
                                     <div class="d-flex align-items-center">
                                         <span class="nav-link-icon"><span class="fas fa-industry"></span></span>
                                         <span class="nav-link-text ps-1">Activités économiques</span>
                                     </div>
                                 </a>
 
-                                <a class="nav-link {{ request()->routeIs('referentiel.parametrage.*') ? 'active' : '' }}" href="#">
+                                <a class="nav-link {{ request()->routeIs('referentiel.parametrage.*') ? 'active' : '' }}"
+                                   href="{{ route('referentiel.parametrage.index') }}">
                                     <div class="d-flex align-items-center">
                                         <span class="nav-link-icon"><span class="fas fa-sliders-h"></span></span>
                                         <span class="nav-link-text ps-1">Paramétrage fiscal</span>
+                                    </div>
+                                </a>
+
+                                <a class="nav-link {{ request()->routeIs('parametrage.types-personne.*') ? 'active' : '' }}"
+                                   href="{{ route('parametrage.types-personne.index') }}">
+                                    <div class="d-flex align-items-center">
+                                        <span class="nav-link-icon"><span class="fas fa-id-card"></span></span>
+                                        <span class="nav-link-text ps-1">Types de personne</span>
+                                    </div>
+                                </a>
+
+                                <a class="nav-link {{ request()->routeIs('parametrage.statuts-contribuable.*') ? 'active' : '' }}"
+                                   href="{{ route('parametrage.statuts-contribuable.index') }}">
+                                    <div class="d-flex align-items-center">
+                                        <span class="nav-link-icon"><span class="fas fa-toggle-on"></span></span>
+                                        <span class="nav-link-text ps-1">Statuts contribuable</span>
+                                    </div>
+                                </a>
+
+                                <a class="nav-link {{ request()->routeIs('parametrage.regimes-imposition.*') ? 'active' : '' }}"
+                                   href="{{ route('parametrage.regimes-imposition.index') }}">
+                                    <div class="d-flex align-items-center">
+                                        <span class="nav-link-icon"><span class="fas fa-percentage"></span></span>
+                                        <span class="nav-link-text ps-1">Régimes d'imposition</span>
+                                    </div>
+                                </a>
+
+                                <a class="nav-link {{ request()->routeIs('parametrage.baremes-taxe.*') ? 'active' : '' }}"
+                                   href="{{ route('parametrage.baremes-taxe.index') }}">
+                                    <div class="d-flex align-items-center">
+                                        <span class="nav-link-icon"><span class="fas fa-percent"></span></span>
+                                        <span class="nav-link-text ps-1">Barèmes de taxe</span>
                                     </div>
                                 </a>
                             </li>
@@ -215,21 +281,24 @@
                                     <div class="col ps-0"><hr class="mb-0 navbar-vertical-divider" /></div>
                                 </div>
 
-                                <a class="nav-link {{ request()->routeIs('pilotage.objectifs.*') ? 'active' : '' }}" href="#">
+                                <a class="nav-link {{ request()->routeIs('pilotage.objectifs.*') ? 'active' : '' }}"
+                                   href="{{ route('pilotage.objectifs.index') }}">
                                     <div class="d-flex align-items-center">
                                         <span class="nav-link-icon"><span class="fas fa-bullseye"></span></span>
                                         <span class="nav-link-text ps-1">Objectifs de recouvrement</span>
                                     </div>
                                 </a>
 
-                                <a class="nav-link {{ request()->routeIs('pilotage.obligations.*') ? 'active' : '' }}" href="#">
+                                <a class="nav-link {{ request()->routeIs('pilotage.obligations.*') ? 'active' : '' }}"
+                                   href="{{ route('pilotage.obligations.index') }}">
                                     <div class="d-flex align-items-center">
                                         <span class="nav-link-icon"><span class="fas fa-tasks"></span></span>
                                         <span class="nav-link-text ps-1">Obligations</span>
                                     </div>
                                 </a>
 
-                                <a class="nav-link {{ request()->routeIs('pilotage.rapports.*') ? 'active' : '' }}" href="#">
+                                <a class="nav-link {{ request()->routeIs('pilotage.rapports.*') ? 'active' : '' }}"
+                                   href="{{ route('pilotage.rapports.index') }}">
                                     <div class="d-flex align-items-center">
                                         <span class="nav-link-icon"><span class="fas fa-file-pdf"></span></span>
                                         <span class="nav-link-text ps-1">Rapports &amp; éditions PDF</span>
@@ -244,40 +313,72 @@
                                     <div class="col ps-0"><hr class="mb-0 navbar-vertical-divider" /></div>
                                 </div>
 
-                                <a class="nav-link {{ request()->routeIs('agents.*') ? 'active' : '' }}" href="#">
+                                {{-- Dropdown Paramétrages --}}
+                                @php
+                                    $parametragesActif = request()->routeIs('agents.*')
+                                        || request()->routeIs('administration.journal.*')
+                                        || request()->routeIs('administration.audit.*')
+                                        || request()->routeIs('administration.parametres.*')
+                                        || request()->routeIs('profile.edit');
+                                @endphp
+                                <a class="nav-link dropdown-indicator {{ $parametragesActif ? '' : 'collapsed' }}"
+                                   href="#parametragesCollapse"
+                                   data-bs-toggle="collapse"
+                                   aria-expanded="{{ $parametragesActif ? 'true' : 'false' }}"
+                                   aria-controls="parametragesCollapse">
                                     <div class="d-flex align-items-center">
-                                        <span class="nav-link-icon"><span class="fas fa-user-shield"></span></span>
-                                        <span class="nav-link-text ps-1">Agents &amp; Accès</span>
+                                        <span class="nav-link-icon"><span class="fas fa-cogs"></span></span>
+                                        <span class="nav-link-text ps-1">Paramétrages</span>
                                     </div>
                                 </a>
-
-                                <a class="nav-link {{ request()->routeIs('administration.journal.*') ? 'active' : '' }}" href="#">
-                                    <div class="d-flex align-items-center">
-                                        <span class="nav-link-icon"><span class="fas fa-sign-in-alt"></span></span>
-                                        <span class="nav-link-text ps-1">Journal des connexions</span>
-                                    </div>
-                                </a>
-
-                                <a class="nav-link {{ request()->routeIs('administration.audit.*') ? 'active' : '' }}" href="#">
-                                    <div class="d-flex align-items-center">
-                                        <span class="nav-link-icon"><span class="fas fa-history"></span></span>
-                                        <span class="nav-link-text ps-1">Audit des données</span>
-                                    </div>
-                                </a>
-
-                                <a class="nav-link {{ request()->routeIs('administration.parametres.*') ? 'active' : '' }}" href="#">
-                                    <div class="d-flex align-items-center">
-                                        <span class="nav-link-icon"><span class="fas fa-cog"></span></span>
-                                        <span class="nav-link-text ps-1">Paramètres application</span>
-                                    </div>
-                                </a>
-
-                                <a class="nav-link {{ request()->routeIs('profile.edit') ? 'active' : '' }}" href="{{ route('profile.edit') }}">
-                                    <div class="d-flex align-items-center">
-                                        <span class="nav-link-icon"><span class="fas fa-user-circle"></span></span>
-                                        <span class="nav-link-text ps-1">Mon profil</span>
-                                    </div>
-                                </a>
+                                <div class="collapse {{ $parametragesActif ? 'show' : '' }}" id="parametragesCollapse">
+                                    <ul class="nav flex-column ms-3">
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ request()->routeIs('agents.*') ? 'active' : '' }}"
+                                               href="{{ route('agents.index') }}">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="nav-link-icon"><span class="fas fa-user-shield"></span></span>
+                                                    <span class="nav-link-text ps-1">Agents &amp; Accès</span>
+                                                </div>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ request()->routeIs('administration.journal.*') ? 'active' : '' }}"
+                                               href="{{ route('administration.journal.index') }}">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="nav-link-icon"><span class="fas fa-sign-in-alt"></span></span>
+                                                    <span class="nav-link-text ps-1">Journal des connexions</span>
+                                                </div>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ request()->routeIs('administration.audit.*') ? 'active' : '' }}"
+                                               href="{{ route('administration.audit.index') }}">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="nav-link-icon"><span class="fas fa-history"></span></span>
+                                                    <span class="nav-link-text ps-1">Audit des données</span>
+                                                </div>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ request()->routeIs('administration.parametres.*') ? 'active' : '' }}"
+                                               href="{{ route('administration.parametres.index') }}">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="nav-link-icon"><span class="fas fa-cog"></span></span>
+                                                    <span class="nav-link-text ps-1">Paramètres application</span>
+                                                </div>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ request()->routeIs('profile.edit') ? 'active' : '' }}" href="{{ route('profile.edit') }}">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="nav-link-icon"><span class="fas fa-user-circle"></span></span>
+                                                    <span class="nav-link-text ps-1">Mon profil</span>
+                                                </div>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
                             </li>
 
                         </ul>
@@ -455,6 +556,13 @@
                                     <div class="dropdown-divider"></div>
                                     <a class="dropdown-item" href="{{ route('profile.edit') }}">{{ __('Profile & account') }}</a>
                                     <div class="dropdown-divider"></div>
+                                    <form method="POST" action="{{ route('verrouillage.activer') }}">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item">
+                                            <span class="fas fa-lock me-2 text-600"></span>Verrouiller la session
+                                        </button>
+                                    </form>
+                                    <div class="dropdown-divider"></div>
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
                                         <button type="submit" class="dropdown-item">{{ __('Logout') }}</button>
@@ -474,14 +582,40 @@
 
                 {{ $slot }}
 
-                <footer class="footer">
-                    <div class="row g-0 justify-content-between fs-10 mt-4 mb-3">
-                        <div class="col-12 col-sm-auto text-center">
-                            <p class="mb-0 text-600">{{ config('app.name', 'Laravel') }} &copy; {{ now()->year }}</p>
+                <footer class="footer border-top mt-4 pt-2 pb-3">
+                    <div class="row align-items-center g-0 fs-11 text-600">
+
+                        {{-- Colonne gauche : identité application --}}
+                        <div class="col-12 col-md-4 text-center text-md-start mb-1 mb-md-0">
+                            <span class="fas fa-landmark me-1 text-primary opacity-75"></span>
+                            <span class="fw-semibold">{{ config('app.name') }}</span>
+                            <span class="mx-1 text-300">|</span>
+                            <span>Gestion fiscale des collectivités</span>
                         </div>
-                        <div class="col-12 col-sm-auto text-center">
-                            <p class="mb-0 text-600">v1.0.0</p>
+
+                        {{-- Colonne centre : collectivité + environnement --}}
+                        <div class="col-12 col-md-4 text-center mb-1 mb-md-0">
+                            <span class="fas fa-map-marker-alt me-1 opacity-50"></span>
+                            Mairie d'Abidjan
+                            @if(app()->environment('local'))
+                                <span class="badge bg-warning text-dark ms-2 fs-11">DEV</span>
+                            @elseif(app()->environment('staging'))
+                                <span class="badge bg-info ms-2 fs-11">STAGING</span>
+                            @endif
                         </div>
+
+                        {{-- Colonne droite : utilisateur + version + copyright --}}
+                        <div class="col-12 col-md-4 text-center text-md-end">
+                            @auth
+                                <span class="fas fa-user-circle me-1 opacity-50"></span>
+                                <span class="me-2">{{ auth()->user()->name }}</span>
+                                <span class="text-300 mx-1">|</span>
+                            @endauth
+                            <span class="me-2">v1.0.0</span>
+                            <span class="text-300 mx-1">|</span>
+                            <span>&copy; {{ now()->year }}</span>
+                        </div>
+
                     </div>
                 </footer>
             </div>
@@ -501,6 +635,38 @@
     <script src="{{ asset('assets/js/theme.js') }}"></script>
 
     @stack('scripts')
+
+    {{-- Verrouillage automatique après inactivité --}}
+    <script>
+    (function () {
+        var dureeMs = {{ config('session.lock_timeout', 15) }} * 60 * 1000;
+        var minuterie;
+
+        function verrouiller() {
+            fetch('{{ route('verrouillage.activer') }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'same-origin',
+            }).finally(function () {
+                window.location.href = '{{ route('verrouillage.show') }}';
+            });
+        }
+
+        function reinitialiser() {
+            clearTimeout(minuterie);
+            minuterie = setTimeout(verrouiller, dureeMs);
+        }
+
+        ['mousemove', 'keydown', 'mousedown', 'scroll', 'touchstart'].forEach(function (evt) {
+            document.addEventListener(evt, reinitialiser, { passive: true });
+        });
+
+        reinitialiser();
+    })();
+    </script>
 </body>
 
 </html>

@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             ReferentielSqlSeeder::class,
+            BaremeSqlSeeder::class,
             ZoneFiscaleSeeder::class,
             RolePermissionSeeder::class,
             ReferentielContribuableSeeder::class,

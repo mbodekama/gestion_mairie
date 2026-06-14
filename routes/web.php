@@ -9,6 +9,7 @@ use App\Http\Controllers\EmissionTaxeController;
 use App\Http\Controllers\EtablissementController;
 use App\Http\Controllers\ExerciceFiscalController;
 use App\Http\Controllers\ExonerationController;
+use App\Http\Controllers\Parametrage\BaremeTaxeController;
 use App\Http\Controllers\Parametrage\RegimeImpositionController;
 use App\Http\Controllers\Parametrage\StatutContribuableController;
 use App\Http\Controllers\Parametrage\TypePersonneController;
@@ -50,6 +51,8 @@ Route::middleware(['auth', 'session.lock'])->group(function () {
          ->parameters(['exercices-fiscaux' => 'exerciceFiscal']);
     Route::post('exercices-fiscaux/{exerciceFiscal}/cloturer', [ExerciceFiscalController::class, 'cloturer'])->name('exercices-fiscaux.cloturer');
     Route::resource('emissions',         EmissionTaxeController::class);
+    // Calcul des montants depuis le barème (bouton « Calculer » du formulaire émission)
+    Route::post('emissions/liquider', [EmissionTaxeController::class, 'liquider'])->name('emissions.liquider');
     Route::resource('recouvrements',     RecouvrementController::class);
 
     // Routes POST dédiées à la soumission des filtres (URL distincte de store)
@@ -139,6 +142,12 @@ Route::middleware(['auth', 'session.lock'])->group(function () {
         Route::resource('types-personne',        TypePersonneController::class);
         Route::resource('statuts-contribuable',  StatutContribuableController::class);
         Route::resource('regimes-imposition',    RegimeImpositionController::class);
+
+        // Barèmes de taxe proportionnelle (patente, TEN…)
+        Route::resource('baremes-taxe', BaremeTaxeController::class)
+             ->parameters(['baremes-taxe' => 'baremeTaxe']);
+        Route::post('baremes-taxe/filtre', [BaremeTaxeController::class, 'index'])->name('baremes-taxe.filtre');
+        Route::post('baremes-taxe/export', [BaremeTaxeController::class, 'export'])->name('baremes-taxe.export');
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

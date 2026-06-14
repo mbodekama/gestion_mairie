@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\HasDocuments;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class EmissionTaxe extends Model
 {
+    use HasDocuments;
+
+
     protected $table = 'emission_taxe';
     protected $guarded = ['id'];
 
@@ -58,6 +62,11 @@ class EmissionTaxe extends Model
     public function soldeDu(): string
     {
         $totalRegle = $this->reglements()->sum('montant_impute');
-        return bcsub((string) $this->montant_prorata ?: (string) $this->montant_annuel, (string) $totalRegle, 2);
+        // Base = prorata si renseigné (> 0), sinon montant annuel.
+        $base = $this->montant_prorata > 0
+            ? (string) $this->montant_prorata
+            : (string) $this->montant_annuel;
+
+        return bcsub($base, (string) $totalRegle, 2);
     }
 }
