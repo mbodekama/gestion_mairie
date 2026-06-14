@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             ReferentielContribuableSeeder::class,
             ContribuableSeeder::class,
+            TypeExonerationSeeder::class,
             DocTypeSeeder::class,
         ]);
     }

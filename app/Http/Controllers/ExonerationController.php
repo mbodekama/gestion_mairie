@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Http\FiltreDataForm\ExonerationFiltreForm;
+use App\Models\Collectivite;
+use App\Models\Contribuable;
 use App\Models\Exoneration;
 use App\Models\TypeExoneration;
 use App\Services\ExcelExportService;
 use App\Services\SelectOptionsService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
@@ -39,6 +43,96 @@ class ExonerationController extends Controller
         return view('exonerations.index', compact(
             'exonerations', 'filtre', 'typesExoneration', 'sortActuel', 'dirActuelle',
         ));
+    }
+
+    public function create(Request $request): View
+    {
+        $contribuable = $request->filled('contribuable_id')
+            ? Contribuable::whereNull('supprime_le')->findOrFail($request->query('contribuable_id'))
+            : null;
+
+        $typesExoneration = $this->selectOptions->charger(TypeExoneration::class, 'libelle');
+
+        return view('exonerations.create', compact('contribuable', 'typesExoneration'));
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        // Résolution du matricule saisi → contribuable_id
+        if ($request->filled('numero_identifiant') && ! $request->filled('contribuable_id')) {
+            $contrib = Contribuable::where('numero_identifiant', $request->input('numero_identifiant'))
+                ->whereNull('supprime_le')->first();
+
+            if (! $contrib) {
+                return back()->withInput()->withErrors([
+                    'numero_identifiant' => 'Aucun contribuable trouvé avec le matricule « ' . $request->input('numero_identifiant') . ' ».',
+                ]);
+            }
+
+            $request->merge(['contribuable_id' => $contrib->id]);
+        }
+
+        $donnees = $this->valider($request, contribuableRequis: true);
+
+        $annee = now()->year;
+        $seq   = Exoneration::where('numero', 'like', "EXO{$annee}%")
+            ->orderBy('numero', 'desc')->value('numero');
+        $seq   = $seq ? ((int) substr($seq, -6) + 1) : 1;
+
+        $donnees['numero']          = "EXO{$annee}" . str_pad($seq, 6, '0', STR_PAD_LEFT);
+        $donnees['collectivite_id'] = Collectivite::value('id');
+        $donnees['created_by']      = auth()->id();
+
+        $exoneration = Exoneration::create($donnees);
+
+        return redirect()->route('exonerations.show', $exoneration)
+            ->with('success', 'Exonération créée — N° ' . $exoneration->numero);
+    }
+
+    public function show(Exoneration $exoneration): View
+    {
+        $exoneration->load(['contribuable', 'typeExoneration']);
+
+        return view('exonerations.show', compact('exoneration'));
+    }
+
+    public function edit(Exoneration $exoneration): View
+    {
+        $exoneration->load(['contribuable', 'typeExoneration']);
+
+        $typesExoneration = $this->selectOptions->charger(TypeExoneration::class, 'libelle');
+
+        return view('exonerations.edit', compact('exoneration', 'typesExoneration'));
+    }
+
+    public function update(Request $request, Exoneration $exoneration): RedirectResponse
+    {
+        $exoneration->update($this->valider($request));
+
+        return redirect()->route('exonerations.show', $exoneration)
+            ->with('success', 'Exonération mise à jour.');
+    }
+
+    public function destroy(Exoneration $exoneration): RedirectResponse
+    {
+        $exoneration->delete();
+
+        return redirect()->route('exonerations.index')
+            ->with('success', 'Exonération supprimée.');
+    }
+
+    /** Validation partagée store/update (le contribuable n'est requis qu'à la création). */
+    private function valider(Request $request, bool $contribuableRequis = false): array
+    {
+        return $request->validate([
+            'contribuable_id'     => [$contribuableRequis ? 'required' : 'sometimes', 'integer', 'exists:contribuable,id'],
+            'type_exoneration_id' => ['required', 'integer', 'exists:type_exoneration,id'],
+            'reference_decret'    => ['nullable', 'string', 'max:32'],
+            'date_decret'         => ['nullable', 'date'],
+            'zone'                => ['nullable', 'string', 'max:2'],
+            'date_debut'          => ['nullable', 'date'],
+            'date_fin'            => ['nullable', 'date', 'after_or_equal:date_debut'],
+        ]);
     }
 
     public function export(Request $request, ExcelExportService $excel): BinaryFileResponse
