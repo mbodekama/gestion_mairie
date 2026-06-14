@@ -61,7 +61,8 @@ class EmissionTaxe extends Model
 
     public function soldeDu(): string
     {
-        $totalRegle = $this->reglements()->sum('montant_impute');
+        // Les règlements annulés ne réduisent pas le solde.
+        $totalRegle = $this->reglements()->whereNull('annule_le')->sum('montant_impute');
         // Base = prorata si renseigné (> 0), sinon montant annuel.
         $base = $this->montant_prorata > 0
             ? (string) $this->montant_prorata

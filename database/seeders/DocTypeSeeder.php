@@ -36,6 +36,11 @@ class DocTypeSeeder extends Seeder
             ['code' => 'CTF_RAPPORT',  'libelle' => 'Rapport de contrôle',                  'model' => \App\Models\ControleFiscal::class, 'ordre' => 1, 'ext' => 'pdf,doc,docx'],
             ['code' => 'CTF_PV',       'libelle' => 'Procès-verbal',                        'model' => \App\Models\ControleFiscal::class, 'ordre' => 2, 'ext' => 'pdf,doc,docx'],
             ['code' => 'CTF_AUTRE',    'libelle' => 'Autre document',                       'model' => \App\Models\ControleFiscal::class, 'ordre' => 99,'ext' => null],
+
+            // ── Règlement / recouvrement ───────────────────────────────────
+            ['code' => 'REG_RECU',     'libelle' => 'Reçu / justificatif de paiement',      'model' => \App\Models\ReglementTaxe::class, 'ordre' => 1, 'ext' => 'pdf,jpg,jpeg,png'],
+            ['code' => 'REG_BORDEREAU','libelle' => 'Bordereau de versement / chèque',      'model' => \App\Models\ReglementTaxe::class, 'ordre' => 2, 'ext' => 'pdf,jpg,jpeg,png'],
+            ['code' => 'REG_AUTRE',    'libelle' => 'Autre document',                       'model' => \App\Models\ReglementTaxe::class, 'ordre' => 99,'ext' => null],
         ];
 
         foreach ($types as $t) {

@@ -115,20 +115,6 @@
                                            class="btn btn-sm btn-outline-info" title="Voir le détail">
                                             <span class="fas fa-eye me-1"></span>Voir
                                         </a>
-                                        <a href="{{ route('recouvrements.edit', $reglement) }}"
-                                           class="btn btn-sm btn-outline-warning" title="Modifier">
-                                            <span class="fas fa-edit me-1"></span>Modifier
-                                        </a>
-                                        <form method="POST"
-                                              action="{{ route('recouvrements.destroy', $reglement) }}"
-                                              onsubmit="return confirm('Confirmer la suppression du règlement {{ $reglement->numero_reglement }} ?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                    class="btn btn-sm btn-outline-danger" title="Supprimer">
-                                                <span class="fas fa-trash me-1"></span>Supprimer
-                                            </button>
-                                        </form>
                                     </div>
                                 </td>
                             </tr>

@@ -15,10 +15,12 @@ use App\Models\ReglementTaxe;
 use App\Models\TypeReglement;
 use App\Services\ExcelExportService;
 use App\Services\SelectOptionsService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\Response;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
@@ -274,7 +276,69 @@ class RecouvrementController extends Controller
             'recette',
         ]);
 
-        return view('recouvrements.show', compact('recouvrement'));
+        try {
+            $historiques = $recouvrement->historique()->latest('created_at')->take(50)->get();
+        } catch (\Illuminate\Database\QueryException) {
+            $historiques = collect();
+        }
+
+        return view('recouvrements.show', compact('recouvrement', 'historiques'));
+    }
+
+    /**
+     * Génère et télécharge la quittance (reçu) au format PDF. Une quittance peut
+     * regrouper plusieurs règlements partageant le même numéro de quittance.
+     */
+    public function quittance(ReglementTaxe $recouvrement): Response
+    {
+        $relations = [
+            'emissionTaxe.etablissement.contribuable',
+            'emissionTaxe.natureTaxe',
+            'modeReglement', 'typeReglement', 'banque', 'recette',
+        ];
+
+        $reglements = $recouvrement->numero_quittance
+            ? ReglementTaxe::with($relations)
+                ->where('numero_quittance', $recouvrement->numero_quittance)
+                ->orderBy('numero_reglement')
+                ->get()
+            : collect([$recouvrement->load($relations)]);
+
+        $contribuable = $reglements->first()?->emissionTaxe?->etablissement?->contribuable;
+        $collectivite = Collectivite::find($recouvrement->collectivite_id);
+        $total = $reglements->reduce(fn ($c, $r) => bcadd($c, (string) $r->montant_impute, 2), '0');
+
+        $pdf = Pdf::loadView('recouvrements.quittance-pdf', compact(
+            'recouvrement', 'reglements', 'contribuable', 'collectivite', 'total'
+        ))->setPaper('a4');
+
+        return $pdf->download('quittance-' . ($recouvrement->numero_quittance ?? $recouvrement->numero_reglement) . '.pdf');
+    }
+
+    /**
+     * Annule un règlement avec un motif obligatoire. Le règlement annulé ne
+     * réduit plus le solde dû de l'émission.
+     */
+    public function annuler(Request $request, ReglementTaxe $recouvrement): RedirectResponse
+    {
+        if ($recouvrement->estAnnule()) {
+            return back()->with('error', 'Ce règlement est déjà annulé.');
+        }
+
+        $valide = $request->validate([
+            'motif_annulation' => ['required', 'string', 'max:255'],
+        ], [
+            'motif_annulation.required' => 'Le motif d\'annulation est obligatoire.',
+        ]);
+
+        $recouvrement->update([
+            'annule_le'        => now(),
+            'motif_annulation' => $valide['motif_annulation'],
+            'annule_par'       => auth()->id(),
+        ]);
+
+        return redirect()->route('recouvrements.show', $recouvrement)
+            ->with('success', 'Règlement ' . $recouvrement->numero_reglement . ' annulé.');
     }
 
     public function edit(ReglementTaxe $recouvrement): View

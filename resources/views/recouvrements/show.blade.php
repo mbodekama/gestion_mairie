@@ -39,10 +39,18 @@
             </div>
 
             <div class="d-flex flex-column flex-sm-row gap-2 flex-shrink-0">
-                <a href="{{ route('recouvrements.edit', $recouvrement) }}"
-                   class="btn btn-light btn-sm">
-                    <span class="fas fa-edit me-1"></span>Modifier
-                </a>
+                @unless ($recouvrement->estAnnule())
+                    @if ($recouvrement->numero_quittance)
+                        <a href="{{ route('recouvrements.quittance', $recouvrement) }}"
+                           class="btn btn-warning btn-sm" target="_blank">
+                            <span class="fas fa-file-pdf me-1"></span>Quittance PDF
+                        </a>
+                    @endif
+                    <button type="button" class="btn btn-danger btn-sm"
+                            data-bs-toggle="modal" data-bs-target="#modalAnnulation">
+                        <span class="fas fa-ban me-1"></span>Annuler
+                    </button>
+                @endunless
                 @if ($emission)
                     <a href="{{ route('emissions.show', $emission) }}"
                        class="btn btn-outline-light btn-sm">
@@ -63,6 +71,24 @@
     <div class="alert alert-success alert-dismissible py-2 fs-9" role="alert">
         {{ session('success') }}
         <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
+    </div>
+@endif
+
+@if (session('error'))
+    <div class="alert alert-danger alert-dismissible py-2 fs-9" role="alert">
+        {{ session('error') }}
+        <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
+    </div>
+@endif
+
+@if ($recouvrement->estAnnule())
+    <div class="alert alert-danger py-3 fs-9">
+        <h6 class="alert-heading mb-1"><span class="fas fa-ban me-1"></span>Règlement annulé</h6>
+        <div><strong>Motif :</strong> {{ $recouvrement->motif_annulation }}</div>
+        <div class="text-muted">
+            Annulé le {{ $recouvrement->annule_le?->format('d/m/Y à H:i') }}
+            @if ($recouvrement->annulePar)— par {{ $recouvrement->annulePar->name }}@endif
+        </div>
     </div>
 @endif
 
@@ -197,14 +223,50 @@
     </div>
 </div>
 
-<div class="mt-3 d-flex justify-content-end gap-2">
-    <form method="POST" action="{{ route('recouvrements.destroy', $recouvrement) }}"
-          onsubmit="return confirm('Supprimer définitivement ce règlement ?')">
-        @csrf @method('DELETE')
-        <button type="submit" class="btn btn-outline-danger btn-sm">
-            <span class="fas fa-trash me-1"></span>Supprimer le règlement
-        </button>
-    </form>
-</div>
+{{-- Pièces jointes & Historique --}}
+<x-documents.panneau :model="$recouvrement" :editable="true" />
+
+<x-historique.timeline
+    :historiques="$historiques"
+    :labels="$recouvrement->auditLabels ?? []"
+    :creeAt="$recouvrement->created_at"
+/>
+
+@unless ($recouvrement->estAnnule())
+    {{-- Modal d'annulation --}}
+    <div class="modal fade" id="modalAnnulation" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <form method="POST" action="{{ route('recouvrements.annuler', $recouvrement) }}" class="modal-content">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <span class="fas fa-ban text-danger me-1"></span>Annuler le règlement {{ $recouvrement->numero_reglement }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="fs-9 text-muted">
+                        L'annulation est définitive et tracée. Le montant ne sera plus déduit du solde de l'émission.
+                    </p>
+                    <label class="form-label fs-9">Motif de l'annulation <span class="text-danger">*</span></label>
+                    <textarea name="motif_annulation" rows="3" maxlength="255" required
+                              class="form-control @error('motif_annulation') is-invalid @enderror"
+                              placeholder="Ex : erreur de saisie, double encaissement…">{{ old('motif_annulation') }}</textarea>
+                    @error('motif_annulation') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+                    <button type="submit" class="btn btn-danger">
+                        <span class="fas fa-ban me-1"></span>Confirmer l'annulation
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @error('motif_annulation')
+        <script>document.addEventListener('DOMContentLoaded', () => new bootstrap.Modal(document.getElementById('modalAnnulation')).show());</script>
+    @enderror
+@endunless
 
 </x-app-layout>

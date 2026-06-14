@@ -54,6 +54,11 @@ Route::middleware(['auth', 'session.lock'])->group(function () {
     // Calcul des montants depuis le barème (bouton « Calculer » du formulaire émission)
     Route::post('emissions/liquider', [EmissionTaxeController::class, 'liquider'])->name('emissions.liquider');
     Route::resource('recouvrements',     RecouvrementController::class);
+    // Quittance PDF d'un règlement (regroupe les règlements de la même quittance)
+    Route::get('recouvrements/{recouvrement}/quittance', [RecouvrementController::class, 'quittance'])
+         ->name('recouvrements.quittance');
+    Route::post('recouvrements/{recouvrement}/annuler', [RecouvrementController::class, 'annuler'])
+         ->name('recouvrements.annuler');
 
     // Routes POST dédiées à la soumission des filtres (URL distincte de store)
     Route::post('contribuables/filtre',     [ContribuableController::class,  'index'])->name('contribuables.filtre');
