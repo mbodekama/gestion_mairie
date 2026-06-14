@@ -85,6 +85,16 @@
                            class="form-control form-control-lg @error('date_debut_activite') is-invalid @enderror" required>
                     @error('date_debut_activite') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
+
+                {{-- CA de référence --}}
+                <div class="col-md-3">
+                    <label class="form-label fs-9">CA de référence (FCFA)</label>
+                    <input type="number" name="ca_reference" value="{{ old('ca_reference') }}"
+                           class="form-control form-control-lg @error('ca_reference') is-invalid @enderror"
+                           min="0" step="1" placeholder="Dernier CA connu">
+                    <small class="text-muted">Indicatif : sert de défaut au CA des émissions.</small>
+                    @error('ca_reference') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
             </div>
         </div>
     </div>

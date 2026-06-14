@@ -2,17 +2,38 @@
 
 namespace App\Models;
 
+use App\Traits\HasDocuments;
+use App\Traits\HasHistorique;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Etablissement extends Model
 {
+    use HasDocuments, HasHistorique;
+
     protected $table = 'etablissement';
     protected $guarded = ['id'];
 
+    protected array $auditExclu  = ['collectivite_id', 'supprime_le', 'created_by', 'updated_by'];
+    protected array $auditLabels = [
+        'denomination'        => 'Dénomination',
+        'type_etablissement'  => 'Type',
+        'activite_id'         => 'Activité ID',
+        'commune_id'          => 'Commune ID',
+        'zone_fiscale_id'     => 'Zone fiscale ID',
+        'adresse'             => 'Adresse',
+        'date_debut_activite' => 'Début d\'activité',
+        'date_cessation'      => 'Date de cessation',
+        'telephone'           => 'Téléphone',
+        'email'               => 'Email',
+        'ca_reference'        => 'CA de référence',
+        'statut'              => 'Statut',
+    ];
+
     protected $casts = [
         'surface'              => 'decimal:2',
+        'ca_reference'         => 'decimal:2',
         'date_debut_activite'  => 'date',
         'date_cessation'       => 'date',
         'date_transfert'       => 'date',

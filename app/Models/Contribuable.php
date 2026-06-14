@@ -2,14 +2,33 @@
 
 namespace App\Models;
 
+use App\Traits\HasDocuments;
+use App\Traits\HasHistorique;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Contribuable extends Model
 {
+    use HasDocuments, HasHistorique;
+
     protected $table = 'contribuable';
     protected $guarded = ['id'];
+
+    protected array $auditExclu  = ['collectivite_id', 'supprime_le'];
+    protected array $auditLabels = [
+        'numero_identifiant'    => 'N° Identifiant',
+        'numero_compte'         => 'N° Compte',
+        'type_personne'         => 'Type',
+        'nom'                   => 'Nom',
+        'prenoms'               => 'Prénoms',
+        'raison_sociale'        => 'Raison sociale',
+        'statut'                => 'Statut',
+        'regime_imposition_id'  => 'Régime d\'imposition',
+        'email'                 => 'Email',
+        'cellulaire'            => 'Mobile',
+        'telephone'             => 'Téléphone',
+    ];
 
     protected $casts = [
         'date_naissance'          => 'date',

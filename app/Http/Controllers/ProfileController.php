@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\JournalConnexion;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,8 +17,14 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        $activiteRecente = JournalConnexion::where('login', $request->user()->email)
+            ->latest('horodatage')
+            ->limit(15)
+            ->get();
+
         return view('profile.edit', [
-            'user' => $request->user(),
+            'user'           => $request->user(),
+            'activiteRecente' => $activiteRecente,
         ]);
     }
 

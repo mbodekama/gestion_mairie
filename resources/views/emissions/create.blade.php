@@ -62,15 +62,6 @@
                     </select>
                     @error('exercice_fiscal_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
-
-                {{-- Numéro fiche --}}
-                <div class="col-md-3">
-                    <label class="form-label fs-9">N° Fiche</label>
-                    <input type="text" name="numero_fiche" value="{{ old('numero_fiche') }}"
-                           class="form-control form-control-lg @error('numero_fiche') is-invalid @enderror"
-                           maxlength="15" placeholder="Ex : F2024001">
-                    @error('numero_fiche') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                </div>
             </div>
         </div>
     </div>
@@ -121,9 +112,13 @@
                 {{-- CA annuel --}}
                 <div class="col-md-4">
                     <label class="form-label fs-9">CA annuel (FCFA)</label>
-                    <input type="number" name="ca_annuel" value="{{ old('ca_annuel') }}"
+                    <input type="number" name="ca_annuel"
+                           value="{{ old('ca_annuel', $etablissement?->ca_reference !== null ? (int) $etablissement->ca_reference : '') }}"
                            class="form-control form-control-lg @error('ca_annuel') is-invalid @enderror"
                            min="0" step="1" placeholder="0">
+                    @if ($etablissement?->ca_reference !== null)
+                        <small class="text-muted">Pré-rempli depuis le CA de référence de l'établissement.</small>
+                    @endif
                     @error('ca_annuel') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 

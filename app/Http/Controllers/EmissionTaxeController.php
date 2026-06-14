@@ -114,7 +114,6 @@ class EmissionTaxeController extends Controller
             'montant_prorata'    => ['nullable', 'numeric', 'min:0'],
             'date_declaration'   => ['nullable', 'date'],
             'date_liquidation'   => ['nullable', 'date'],
-            'numero_fiche'       => ['nullable', 'string', 'max:15'],
         ]);
 
         $exercice = ExerciceFiscal::findOrFail($donnees['exercice_fiscal_id']);
@@ -125,13 +124,15 @@ class EmissionTaxeController extends Controller
         $collectivite = Collectivite::first();
         $annee        = $exercice->annee;
 
-        $seq = EmissionTaxe::where('numero_emission', 'like', "ET{$annee}%")
+        $seq = EmissionTaxe::where('numero_emission', 'like', "EMI{$annee}%")
             ->orderBy('numero_emission', 'desc')
             ->value('numero_emission');
         $seq = $seq ? ((int) substr($seq, -6) + 1) : 1;
 
         $etab = Etablissement::findOrFail($donnees['etablissement_id']);
-        $donnees['numero_emission'] = "ET{$annee}" . str_pad($seq, 6, '0', STR_PAD_LEFT);
+        // Numéros métier générés : émission, fiche (même séquence annuelle) et article
+        $donnees['numero_emission'] = "EMI{$annee}" . str_pad($seq, 6, '0', STR_PAD_LEFT);
+        $donnees['numero_fiche']    = "FE{$annee}" . str_pad($seq, 6, '0', STR_PAD_LEFT);
         $donnees['numero_article']  = $etab->numero . '/' . $annee;
         $donnees['collectivite_id'] = $collectivite?->id;
         $donnees['created_by']      = auth()->id();
@@ -190,7 +191,6 @@ class EmissionTaxeController extends Controller
             'montant_prorata'  => ['nullable', 'numeric', 'min:0'],
             'date_declaration' => ['nullable', 'date'],
             'date_liquidation' => ['nullable', 'date'],
-            'numero_fiche'     => ['nullable', 'string', 'max:15'],
         ]);
 
         $donnees['updated_by'] = auth()->id();

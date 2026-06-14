@@ -36,6 +36,9 @@ return [
 
     'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
 
+    // Délai d'inactivité (en minutes) avant verrouillage automatique de l'écran
+    'lock_timeout' => (int) env('SESSION_LOCK_TIMEOUT', 15),
+
     /*
     |--------------------------------------------------------------------------
     | Session Encryption

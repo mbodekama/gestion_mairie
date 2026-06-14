@@ -66,7 +66,7 @@ return new class extends Migration
             $table->string('boite_postale')->nullable();
             $table->string('telephone', 32)->nullable();
             $table->string('cellulaire', 32)->nullable();
-            $table->string('fax', 16)->nullable();
+            $table->string('fax', 30)->nullable();
             $table->string('email')->nullable();
             $table->string('photo_uri', 512)->nullable();
             $table->string('statut', 12)->default('ACTIF');

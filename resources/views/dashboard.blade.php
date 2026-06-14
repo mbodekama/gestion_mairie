@@ -1,14 +1,5 @@
 <x-app-layout :title="__('Dashboard')">
-    <div class="row g-3 mb-3">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="mb-1">{{ __('Welcome back, :name!', ['name' => auth()->user()->name]) }}</h4>
-                    <p class="mb-0 text-600">{{ __("Here's what's happening with your account today.") }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-page-header titre="Tableau de bord" :sous-titre="__('Bienvenue, :name ! Voici un aperçu de l\'activité fiscale.', ['name' => auth()->user()->name])" />
 
     <div class="row g-3 mb-3">
         <div class="col-md-6 col-xxl-3">

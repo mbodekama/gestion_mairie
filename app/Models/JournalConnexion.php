@@ -12,8 +12,8 @@ class JournalConnexion extends Model
     protected $guarded = ['id'];
 
     protected $casts = [
-        'succes'      => 'boolean',
-        'horodatage'  => 'datetime',
+        'succes'     => 'boolean',
+        'horodatage' => 'datetime',
     ];
 
     public function utilisateur(): BelongsTo
