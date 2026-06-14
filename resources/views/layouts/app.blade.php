@@ -208,7 +208,7 @@
                             {{-- ===== Contrôle fiscal ===== --}}
                             <li class="nav-item">
                                 <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
-                                    <div class="col-auto navbar-vertical-label">Contrôle fiscal</div>
+                                    <div class="col-auto navbar-vertical-label">Contrôle &amp; Dossiers</div>
                                     <div class="col ps-0"><hr class="mb-0 navbar-vertical-divider" /></div>
                                 </div>
 
@@ -227,14 +227,6 @@
                                         <span class="nav-link-text ps-1">Exonérations</span>
                                     </div>
                                 </a>
-                            </li>
-
-                            {{-- ===== Dossiers ===== --}}
-                            <li class="nav-item">
-                                <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
-                                    <div class="col-auto navbar-vertical-label">Dossiers</div>
-                                    <div class="col ps-0"><hr class="mb-0 navbar-vertical-divider" /></div>
-                                </div>
 
                                 <a class="nav-link {{ request()->routeIs('dossiers.*') ? 'active' : '' }}"
                                    href="{{ route('dossiers.index') }}">
@@ -256,7 +248,7 @@
                             {{-- ===== Paramétrage ===== --}}
                             <li class="nav-item">
                                 <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
-                                    <div class="col-auto navbar-vertical-label">Paramétrage</div>
+                                    <div class="col-auto navbar-vertical-label">Gestion de la fiscalité </div>
                                     <div class="col ps-0"><hr class="mb-0 navbar-vertical-divider" /></div>
                                 </div>
 
@@ -264,10 +256,7 @@
                                     $paramFiscalActif = request()->routeIs('exercices-fiscaux.*')
                                         || request()->routeIs('referentiel.parametrage.*')
                                         || request()->routeIs('parametrage.baremes-taxe.*')
-                                        || request()->routeIs('pilotage.objectifs.*')
-                                        || request()->routeIs('referentiel.territorial.*')
-                                        || request()->routeIs('parametrage.types-personne.*')
-                                        || request()->routeIs('parametrage.statuts-contribuable.*');
+                                        || request()->routeIs('pilotage.objectifs.*');
                                 @endphp
                                 <a class="nav-link dropdown-indicator {{ $paramFiscalActif ? '' : 'collapsed' }}"
                                    href="#paramFiscalCollapse"
@@ -281,14 +270,6 @@
                                 </a>
                                 <div class="collapse {{ $paramFiscalActif ? 'show' : '' }}" id="paramFiscalCollapse">
                                     <ul class="nav flex-column ms-3">
-                                        <li class="nav-item">
-                                            <a class="nav-link {{ request()->routeIs('referentiel.territorial.*') ? 'active' : '' }}" href="{{ route('referentiel.territorial.index') }}">
-                                                <div class="d-flex align-items-center">
-                                                    <span class="nav-link-icon"><span class="fas fa-map-marker-alt"></span></span>
-                                                    <span class="nav-link-text ps-1">Territorial</span>
-                                                </div>
-                                            </a>
-                                        </li>
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('exercices-fiscaux.*') ? 'active' : '' }}" href="{{ route('exercices-fiscaux.index') }}">
                                                 <div class="d-flex align-items-center">
@@ -321,31 +302,7 @@
                                                 </div>
                                             </a>
                                         </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link {{ request()->routeIs('parametrage.types-personne.*') ? 'active' : '' }}" href="{{ route('parametrage.types-personne.index') }}">
-                                                <div class="d-flex align-items-center">
-                                                    <span class="nav-link-icon"><span class="fas fa-id-card"></span></span>
-                                                    <span class="nav-link-text ps-1">Types de personne</span>
-                                                </div>
-                                            </a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link {{ request()->routeIs('parametrage.statuts-contribuable.*') ? 'active' : '' }}" href="{{ route('parametrage.statuts-contribuable.index') }}">
-                                                <div class="d-flex align-items-center">
-                                                    <span class="nav-link-icon"><span class="fas fa-toggle-on"></span></span>
-                                                    <span class="nav-link-text ps-1">Statuts contribuable</span>
-                                                </div>
-                                            </a>
-                                        </li>
                                     </ul>
-                                </div>
-                            </li>
-
-                            {{-- ===== Pilotage ===== --}}
-                            <li class="nav-item">
-                                <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
-                                    <div class="col-auto navbar-vertical-label">Pilotage</div>
-                                    <div class="col ps-0"><hr class="mb-0 navbar-vertical-divider" /></div>
                                 </div>
 
                                 <a class="nav-link {{ request()->routeIs('pilotage.rapports.*') ? 'active' : '' }}"
@@ -360,7 +317,7 @@
                             {{-- ===== Sécurité ===== --}}
                             <li class="nav-item">
                                 <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
-                                    <div class="col-auto navbar-vertical-label">Sécurité</div>
+                                    <div class="col-auto navbar-vertical-label">Administration &amp; Système</div>
                                     <div class="col ps-0"><hr class="mb-0 navbar-vertical-divider" /></div>
                                 </div>
 
@@ -407,22 +364,59 @@
                                         </li>
                                     </ul>
                                 </div>
-                            </li>
 
-                            {{-- ===== Administration ===== --}}
-                            <li class="nav-item">
-                                <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
-                                    <div class="col-auto navbar-vertical-label">Administration</div>
-                                    <div class="col ps-0"><hr class="mb-0 navbar-vertical-divider" /></div>
-                                </div>
-
-                                <a class="nav-link {{ request()->routeIs('administration.parametres.*') ? 'active' : '' }}"
-                                   href="{{ route('administration.parametres.index') }}">
+                                @php
+                                    $configActif = request()->routeIs('administration.parametres.*')
+                                        || request()->routeIs('referentiel.territorial.*')
+                                        || request()->routeIs('parametrage.types-personne.*')
+                                        || request()->routeIs('parametrage.statuts-contribuable.*');
+                                @endphp
+                                <a class="nav-link dropdown-indicator {{ $configActif ? '' : 'collapsed' }}"
+                                   href="#configCollapse"
+                                   data-bs-toggle="collapse"
+                                   aria-expanded="{{ $configActif ? 'true' : 'false' }}"
+                                   aria-controls="configCollapse">
                                     <div class="d-flex align-items-center">
-                                        <span class="nav-link-icon"><span class="fas fa-cog"></span></span>
-                                        <span class="nav-link-text ps-1">Paramètres application</span>
+                                        <span class="nav-link-icon"><span class="fas fa-cogs"></span></span>
+                                        <span class="nav-link-text ps-1">Configuration</span>
                                     </div>
                                 </a>
+                                <div class="collapse {{ $configActif ? 'show' : '' }}" id="configCollapse">
+                                    <ul class="nav flex-column ms-3">
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ request()->routeIs('referentiel.territorial.*') ? 'active' : '' }}" href="{{ route('referentiel.territorial.index') }}">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="nav-link-icon"><span class="fas fa-map-marker-alt"></span></span>
+                                                    <span class="nav-link-text ps-1">Territorial</span>
+                                                </div>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ request()->routeIs('administration.parametres.*') ? 'active' : '' }}" href="{{ route('administration.parametres.index') }}">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="nav-link-icon"><span class="fas fa-cog"></span></span>
+                                                    <span class="nav-link-text ps-1">Paramètres application</span>
+                                                </div>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ request()->routeIs('parametrage.types-personne.*') ? 'active' : '' }}" href="{{ route('parametrage.types-personne.index') }}">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="nav-link-icon"><span class="fas fa-id-card"></span></span>
+                                                    <span class="nav-link-text ps-1">Types de personne</span>
+                                                </div>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ request()->routeIs('parametrage.statuts-contribuable.*') ? 'active' : '' }}" href="{{ route('parametrage.statuts-contribuable.index') }}">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="nav-link-icon"><span class="fas fa-toggle-on"></span></span>
+                                                    <span class="nav-link-text ps-1">Statuts contribuable</span>
+                                                </div>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
                             </li>
 
                             {{-- ===== Mon compte ===== --}}

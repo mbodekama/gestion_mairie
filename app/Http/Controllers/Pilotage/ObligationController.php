@@ -4,12 +4,16 @@ namespace App\Http\Controllers\Pilotage;
 
 use App\Http\Controllers\Controller;
 use App\Http\FiltreDataForm\ObligationFiltreForm;
+use App\Models\Collectivite;
+use App\Models\Contribuable;
 use App\Models\NatureTaxe;
 use App\Models\Obligation;
 use App\Models\Periodicite;
 use App\Services\ExcelExportService;
 use App\Services\SelectOptionsService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
@@ -41,6 +45,110 @@ class ObligationController extends Controller
         return view('pilotage.obligations.index', compact(
             'obligations', 'filtre', 'naturesTaxe', 'periodicites', 'sortActuel', 'dirActuelle',
         ));
+    }
+
+    public function create(Request $request): View
+    {
+        $contribuable = $request->filled('contribuable_id')
+            ? Contribuable::whereNull('supprime_le')->findOrFail($request->query('contribuable_id'))
+            : null;
+
+        $naturesTaxe  = $this->selectOptions->charger(NatureTaxe::class, 'libelle');
+        $periodicites = $this->selectOptions->charger(Periodicite::class, 'libelle');
+
+        return view('pilotage.obligations.create', compact('contribuable', 'naturesTaxe', 'periodicites'));
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        // Résolution du matricule saisi → contribuable_id
+        if ($request->filled('numero_identifiant') && ! $request->filled('contribuable_id')) {
+            $contrib = Contribuable::where('numero_identifiant', $request->input('numero_identifiant'))
+                ->whereNull('supprime_le')->first();
+
+            if (! $contrib) {
+                return back()->withInput()->withErrors([
+                    'numero_identifiant' => 'Aucun contribuable trouvé avec le matricule « ' . $request->input('numero_identifiant') . ' ».',
+                ]);
+            }
+
+            $request->merge(['contribuable_id' => $contrib->id]);
+        }
+
+        $donnees = $request->validate([
+            'contribuable_id' => ['required', 'integer', 'exists:contribuable,id'],
+            'nature_taxe_id'  => ['required', 'integer', 'exists:nature_taxe,id'],
+            'periodicite_id'  => ['nullable', 'integer', 'exists:periodicite,id'],
+        ]);
+
+        // Une obligation est unique par (contribuable, nature de taxe)
+        $existe = Obligation::where('contribuable_id', $donnees['contribuable_id'])
+            ->where('nature_taxe_id', $donnees['nature_taxe_id'])
+            ->exists();
+
+        if ($existe) {
+            return back()->withInput()->withErrors([
+                'nature_taxe_id' => 'Ce contribuable a déjà une obligation pour cette nature de taxe.',
+            ]);
+        }
+
+        $donnees['collectivite_id'] = Collectivite::value('id');
+        $donnees['created_by']      = auth()->id();
+
+        Obligation::create($donnees);
+
+        return redirect()->route('pilotage.obligations.index')
+            ->with('success', 'Obligation fiscale créée avec succès.');
+    }
+
+    public function show(Obligation $obligation): View
+    {
+        $obligation->load(['contribuable', 'natureTaxe', 'periodicite']);
+
+        return view('pilotage.obligations.show', compact('obligation'));
+    }
+
+    public function edit(Obligation $obligation): View
+    {
+        $obligation->load(['contribuable', 'natureTaxe', 'periodicite']);
+
+        $naturesTaxe  = $this->selectOptions->charger(NatureTaxe::class, 'libelle');
+        $periodicites = $this->selectOptions->charger(Periodicite::class, 'libelle');
+
+        return view('pilotage.obligations.edit', compact('obligation', 'naturesTaxe', 'periodicites'));
+    }
+
+    public function update(Request $request, Obligation $obligation): RedirectResponse
+    {
+        $donnees = $request->validate([
+            'nature_taxe_id' => ['required', 'integer', 'exists:nature_taxe,id'],
+            'periodicite_id' => ['nullable', 'integer', 'exists:periodicite,id'],
+        ]);
+
+        // Unicité (contribuable, nature) hors l'obligation courante
+        $existe = Obligation::where('contribuable_id', $obligation->contribuable_id)
+            ->where('nature_taxe_id', $donnees['nature_taxe_id'])
+            ->where('id', '!=', $obligation->id)
+            ->exists();
+
+        if ($existe) {
+            return back()->withInput()->withErrors([
+                'nature_taxe_id' => 'Ce contribuable a déjà une obligation pour cette nature de taxe.',
+            ]);
+        }
+
+        $obligation->update($donnees);
+
+        return redirect()->route('pilotage.obligations.index')
+            ->with('success', 'Obligation fiscale mise à jour.');
+    }
+
+    public function destroy(Obligation $obligation): RedirectResponse
+    {
+        $obligation->delete();
+
+        return redirect()->route('pilotage.obligations.index')
+            ->with('success', 'Obligation fiscale supprimée.');
     }
 
     public function export(Request $request, ExcelExportService $excel): BinaryFileResponse

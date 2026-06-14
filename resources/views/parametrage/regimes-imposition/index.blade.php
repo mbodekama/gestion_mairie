@@ -2,6 +2,19 @@
 
     <x-page-header titre="Paramétrage — Régimes d'imposition" />
 
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible py-2 fs-9" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible py-2 fs-9" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
     <x-filtre.card :action="route('parametrage.regimes-imposition.index')" :reset="route('parametrage.regimes-imposition.index')"
         titre="Filtrer les régimes d'imposition selon vos critères">
         <x-filtre.input name="libelle" label="Libellé / Code" placeholder="Recherche par libellé ou code..." />

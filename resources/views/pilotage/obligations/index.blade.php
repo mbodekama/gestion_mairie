@@ -2,6 +2,13 @@
 
     <x-page-header titre="Pilotage — Obligations fiscales des contribuables" />
 
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible py-2 fs-9" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
     {{-- ===== Card Filtres ===== --}}
     <x-filtre.card :action="route('pilotage.obligations.filtre')" :reset="route('pilotage.obligations.index')"
         titre="Filtrer les obligations selon vos critères">

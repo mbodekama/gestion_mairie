@@ -146,7 +146,9 @@ Route::middleware(['auth', 'session.lock'])->group(function () {
     Route::prefix('parametrage')->name('parametrage.')->group(function () {
         Route::resource('types-personne',        TypePersonneController::class);
         Route::resource('statuts-contribuable',  StatutContribuableController::class);
-        Route::resource('regimes-imposition',    RegimeImpositionController::class);
+        Route::resource('regimes-imposition',    RegimeImpositionController::class)
+             ->parameters(['regimes-imposition' => 'regimeImposition'])
+             ->except(['show']);
 
         // Barèmes de taxe proportionnelle (patente, TEN…)
         Route::resource('baremes-taxe', BaremeTaxeController::class)
