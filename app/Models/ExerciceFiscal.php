@@ -37,4 +37,16 @@ class ExerciceFiscal extends Model
     {
         return $this->hasMany(ReglementTaxe::class);
     }
+
+    /**
+     * Vrai dès qu'une émission (taxe ou cotisation foncière) ou un recouvrement
+     * a été enregistré sur cet exercice. Un tel exercice ne peut plus être
+     * modifié ni supprimé.
+     */
+    public function aDesOperations(): bool
+    {
+        return $this->emissionsTaxe()->exists()
+            || $this->emissionsCotisationFonciere()->exists()
+            || $this->reglementsTaxe()->exists();
+    }
 }
