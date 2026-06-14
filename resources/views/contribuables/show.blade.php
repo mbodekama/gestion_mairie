@@ -69,6 +69,12 @@
                    class="btn btn-light btn-sm">
                     <span class="fas fa-plus me-1"></span>Établissement
                 </a>
+                <x-suppression
+                    :action="route('contribuables.destroy', $contribuable)"
+                    :bloquee="$suppressionBloquee"
+                    raison="Rattaché à des impositions / recouvrements : suppression impossible."
+                    libelle="ce contribuable"
+                    id="modalSuppContrib" />
                 <a href="{{ route('contribuables.index') }}"
                    class="btn btn-outline-light btn-sm">
                     <span class="fas fa-arrow-left me-1"></span>Retour

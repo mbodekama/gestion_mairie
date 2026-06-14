@@ -178,9 +178,11 @@ class EtablissementController extends Controller
         }, '0');
         $totalRegle  = bcsub($totalEmis, $totalSolde, 2);
 
+        $suppressionBloquee = $etablissement->emissionsTaxe()->exists();
+
         return view('etablissements.show', compact(
             'etablissement', 'historiques',
-            'totalEmis', 'totalRegle', 'totalSolde',
+            'totalEmis', 'totalRegle', 'totalSolde', 'suppressionBloquee',
         ));
     }
 
@@ -239,10 +241,23 @@ class EtablissementController extends Controller
             ->with('success', 'Établissement mis à jour avec succès.');
     }
 
-    public function destroy(Etablissement $etablissement): RedirectResponse
+    public function destroy(Request $request, Etablissement $etablissement): RedirectResponse
     {
+        if ($etablissement->emissionsTaxe()->exists()) {
+            return back()->with('error', 'Impossible de supprimer un établissement rattaché à des émissions ou recouvrements.');
+        }
+
+        $valide = $request->validate([
+            'motif_suppression' => ['required', 'string', 'max:255'],
+        ], ['motif_suppression.required' => 'Le motif de suppression est obligatoire.']);
+
         $contribuableId = $etablissement->contribuable_id;
-        $etablissement->update(['supprime_le' => now(), 'updated_by' => auth()->id()]);
+        $etablissement->update([
+            'supprime_le'       => now(),
+            'motif_suppression' => $valide['motif_suppression'],
+            'supprime_par'      => auth()->id(),
+            'updated_by'        => auth()->id(),
+        ]);
 
         return redirect()->route('contribuables.show', $contribuableId)
             ->with('success', 'Établissement supprimé.');

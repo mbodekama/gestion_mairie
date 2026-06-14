@@ -2,10 +2,17 @@
 
 <x-page-header titre="Modifier l'émission {{ $emission->numero_emission }}" />
 
+@php $figer = $emission->exerciceFiscal?->cloture || $champsFiges; @endphp
+
 @if ($emission->exerciceFiscal?->cloture)
     <div class="alert alert-danger py-2 fs-9">
         <span class="fas fa-lock me-1"></span>
         L'exercice {{ $emission->exerciceFiscal->annee }} est clôturé — modification impossible.
+    </div>
+@elseif ($champsFiges)
+    <div class="alert alert-warning py-2 fs-9">
+        <span class="fas fa-lock me-1"></span>
+        Cette émission a fait l'objet d'un recouvrement : les champs de calcul (nature, périodicité, CA, montants) sont figés. Seules les dates restent modifiables.
     </div>
 @endif
 
@@ -60,7 +67,7 @@
                     <label class="form-label fs-9">Nature de taxe <span class="text-danger">*</span></label>
                     <select name="nature_taxe_id"
                             class="form-select form-select-lg @error('nature_taxe_id') is-invalid @enderror"
-                            {{ $emission->exerciceFiscal?->cloture ? 'disabled' : 'required' }}>
+                            {{ $figer ? 'disabled' : 'required' }}>
                         <option value="">— Choisir —</option>
                         @foreach ($naturesTaxe as $nt)
                             <option value="{{ $nt->id }}"
@@ -76,7 +83,7 @@
                     <label class="form-label fs-9">Périodicité <span class="text-danger">*</span></label>
                     <select name="periodicite_id"
                             class="form-select form-select-lg @error('periodicite_id') is-invalid @enderror"
-                            {{ $emission->exerciceFiscal?->cloture ? 'disabled' : 'required' }}>
+                            {{ $figer ? 'disabled' : 'required' }}>
                         <option value="">— Choisir —</option>
                         @foreach ($periodicites as $p)
                             <option value="{{ $p->id }}"
@@ -99,7 +106,7 @@
                     <input type="number" name="ca_annuel"
                            value="{{ old('ca_annuel', $emission->ca_annuel) }}"
                            class="form-control form-control-lg" min="0" step="1"
-                           {{ $emission->exerciceFiscal?->cloture ? 'disabled' : '' }}>
+                           {{ $figer ? 'disabled' : '' }}>
                 </div>
 
                 <div class="col-md-4">
@@ -108,7 +115,7 @@
                            value="{{ old('montant_annuel', $emission->montant_annuel) }}"
                            class="form-control form-control-lg @error('montant_annuel') is-invalid @enderror"
                            min="0" step="1"
-                           {{ $emission->exerciceFiscal?->cloture ? 'disabled' : 'required' }}>
+                           {{ $figer ? 'disabled' : 'required' }}>
                     @error('montant_annuel') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 
@@ -117,7 +124,7 @@
                     <input type="number" name="montant_periode"
                            value="{{ old('montant_periode', $emission->montant_periode) }}"
                            class="form-control form-control-lg" min="0" step="1"
-                           {{ $emission->exerciceFiscal?->cloture ? 'disabled' : '' }}>
+                           {{ $figer ? 'disabled' : '' }}>
                 </div>
 
                 <div class="col-md-3">
@@ -125,7 +132,7 @@
                     <input type="number" name="nb_mois_prorata"
                            value="{{ old('nb_mois_prorata', $emission->nb_mois_prorata) }}"
                            class="form-control form-control-lg" min="1" max="12"
-                           {{ $emission->exerciceFiscal?->cloture ? 'disabled' : '' }}>
+                           {{ $figer ? 'disabled' : '' }}>
                 </div>
 
                 <div class="col-md-3">
@@ -133,7 +140,7 @@
                     <input type="number" name="montant_prorata"
                            value="{{ old('montant_prorata', $emission->montant_prorata) }}"
                            class="form-control form-control-lg" min="0" step="1"
-                           {{ $emission->exerciceFiscal?->cloture ? 'disabled' : '' }}>
+                           {{ $figer ? 'disabled' : '' }}>
                 </div>
             </div>
         </div>

@@ -113,16 +113,6 @@
                                            class="btn btn-sm btn-outline-warning" title="Modifier">
                                             <span class="fas fa-edit me-1"></span>Modifier
                                         </a>
-                                        <form method="POST"
-                                              action="{{ route('emissions.destroy', $emission) }}"
-                                              onsubmit="return confirm('Confirmer la suppression de l\'émission {{ $emission->numero_emission }} ?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                    class="btn btn-sm btn-outline-danger" title="Supprimer">
-                                                <span class="fas fa-trash me-1"></span>Supprimer
-                                            </button>
-                                        </form>
                                     </div>
                                 </td>
                             </tr>

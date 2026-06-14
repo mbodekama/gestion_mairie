@@ -162,7 +162,9 @@ class EmissionTaxeController extends Controller
         );
         $soldeDu = $emission->soldeDu();
 
-        return view('emissions.show', compact('emission', 'montantBase', 'totalRegle', 'soldeDu'));
+        $suppressionBloquee = $emission->reglements()->exists();
+
+        return view('emissions.show', compact('emission', 'montantBase', 'totalRegle', 'soldeDu', 'suppressionBloquee'));
     }
 
     public function edit(EmissionTaxe $emission): View
@@ -172,7 +174,9 @@ class EmissionTaxeController extends Controller
         $naturesTaxe  = $this->selectOptions->charger(NatureTaxe::class, 'libelle_court');
         $periodicites = $this->selectOptions->charger(Periodicite::class, 'libelle');
 
-        return view('emissions.edit', compact('emission', 'naturesTaxe', 'periodicites'));
+        $champsFiges = $emission->reglements()->exists();
+
+        return view('emissions.edit', compact('emission', 'naturesTaxe', 'periodicites', 'champsFiges'));
     }
 
     public function update(Request $request, EmissionTaxe $emission): RedirectResponse
@@ -181,17 +185,26 @@ class EmissionTaxeController extends Controller
             return back()->with('error', 'Exercice clôturé — modification impossible.');
         }
 
-        $donnees = $request->validate([
-            'nature_taxe_id'   => ['required', 'integer', 'exists:nature_taxe,id'],
-            'periodicite_id'   => ['required', 'integer', 'exists:periodicite,id'],
-            'ca_annuel'        => ['nullable', 'numeric', 'min:0'],
-            'montant_annuel'   => ['required', 'numeric', 'min:0'],
-            'montant_periode'  => ['nullable', 'numeric', 'min:0'],
-            'nb_mois_prorata'  => ['nullable', 'integer', 'min:1', 'max:12'],
-            'montant_prorata'  => ['nullable', 'numeric', 'min:0'],
-            'date_declaration' => ['nullable', 'date'],
-            'date_liquidation' => ['nullable', 'date'],
-        ]);
+        // Dès qu'un recouvrement (même partiel) existe, les champs de calcul sont figés :
+        // seules les dates restent modifiables.
+        if ($emission->reglements()->exists()) {
+            $donnees = $request->validate([
+                'date_declaration' => ['nullable', 'date'],
+                'date_liquidation' => ['nullable', 'date'],
+            ]);
+        } else {
+            $donnees = $request->validate([
+                'nature_taxe_id'   => ['required', 'integer', 'exists:nature_taxe,id'],
+                'periodicite_id'   => ['required', 'integer', 'exists:periodicite,id'],
+                'ca_annuel'        => ['nullable', 'numeric', 'min:0'],
+                'montant_annuel'   => ['required', 'numeric', 'min:0'],
+                'montant_periode'  => ['nullable', 'numeric', 'min:0'],
+                'nb_mois_prorata'  => ['nullable', 'integer', 'min:1', 'max:12'],
+                'montant_prorata'  => ['nullable', 'numeric', 'min:0'],
+                'date_declaration' => ['nullable', 'date'],
+                'date_liquidation' => ['nullable', 'date'],
+            ]);
+        }
 
         $donnees['updated_by'] = auth()->id();
         $emission->update($donnees);
@@ -200,14 +213,23 @@ class EmissionTaxeController extends Controller
             ->with('success', 'Émission mise à jour.');
     }
 
-    public function destroy(EmissionTaxe $emission): RedirectResponse
+    public function destroy(Request $request, EmissionTaxe $emission): RedirectResponse
     {
         if ($emission->reglements()->exists()) {
-            return back()->with('error', 'Impossible de supprimer une émission ayant des règlements.');
+            return back()->with('error', 'Impossible de supprimer une émission rattachée à des recouvrements.');
         }
 
+        $valide = $request->validate([
+            'motif_suppression' => ['required', 'string', 'max:255'],
+        ], ['motif_suppression.required' => 'Le motif de suppression est obligatoire.']);
+
         $etablissementId = $emission->etablissement_id;
-        $emission->delete();
+        $emission->update([
+            'supprime_le'       => now(),
+            'motif_suppression' => $valide['motif_suppression'],
+            'supprime_par'      => auth()->id(),
+            'updated_by'        => auth()->id(),
+        ]);
 
         return redirect()->route('etablissements.show', $etablissementId)
             ->with('success', 'Émission supprimée.');

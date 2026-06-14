@@ -124,16 +124,6 @@
                                            class="btn btn-sm btn-outline-warning" title="Modifier">
                                             <span class="fas fa-edit me-1"></span>Modifier
                                         </a>
-                                        <form method="POST"
-                                              action="{{ route('etablissements.destroy', $etablissement) }}"
-                                              onsubmit="return confirm('Confirmer la suppression de cet établissement ?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                    class="btn btn-sm btn-outline-danger" title="Supprimer">
-                                                <span class="fas fa-trash me-1"></span>Supprimer
-                                            </button>
-                                        </form>
                                     </div>
                                 </td>
                             </tr>

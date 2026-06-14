@@ -67,6 +67,12 @@
                    class="btn btn-light btn-sm">
                     <span class="fas fa-plus me-1"></span>Émission
                 </a>
+                <x-suppression
+                    :action="route('etablissements.destroy', $etablissement)"
+                    :bloquee="$suppressionBloquee"
+                    raison="Rattaché à des émissions / recouvrements : suppression impossible."
+                    libelle="cet établissement"
+                    id="modalSuppEtab" />
                 <a href="{{ route('contribuables.show', $contrib) }}"
                    class="btn btn-outline-light btn-sm">
                     <span class="fas fa-arrow-left me-1"></span>Retour
@@ -274,16 +280,6 @@
                         Supprimé le {{ $etablissement->supprime_le->format('d/m/Y H:i') }}
                     </div>
                 @endif
-
-                <div class="mt-3 pt-3 border-top">
-                    <form method="POST" action="{{ route('etablissements.destroy', $etablissement) }}"
-                          onsubmit="return confirm('Supprimer définitivement cet établissement ?')">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">
-                            <span class="fas fa-trash me-1"></span>Supprimer l'établissement
-                        </button>
-                    </form>
-                </div>
             </div>
         </div>
     </div>

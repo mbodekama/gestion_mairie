@@ -62,6 +62,12 @@
                        class="btn btn-light btn-sm">
                         <span class="fas fa-plus me-1"></span>Règlement
                     </a>
+                    <x-suppression
+                        :action="route('emissions.destroy', $emission)"
+                        :bloquee="$suppressionBloquee"
+                        raison="Émission rattachée à des recouvrements : suppression impossible."
+                        libelle="cette émission"
+                        id="modalSuppEmission" />
                 @endif
                 <a href="{{ $emission->etablissement ? route('etablissements.show', $emission->etablissement) : route('emissions.index') }}"
                    class="btn btn-outline-light btn-sm">
@@ -244,15 +250,6 @@
                            class="btn btn-outline-primary btn-sm">
                             <span class="fas fa-edit me-1"></span>Modifier l'émission
                         </a>
-                        @if ($emission->reglements->isEmpty())
-                            <form method="POST" action="{{ route('emissions.destroy', $emission) }}"
-                                  onsubmit="return confirm('Supprimer définitivement cette émission ?')">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="btn btn-outline-danger btn-sm w-100">
-                                    <span class="fas fa-trash me-1"></span>Supprimer
-                                </button>
-                            </form>
-                        @endif
                     @endif
                 </div>
 

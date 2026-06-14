@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\HasDocuments;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -22,7 +23,19 @@ class EmissionTaxe extends Model
         'montant_prorata'  => 'decimal:2',
         'date_declaration' => 'date',
         'date_liquidation' => 'date',
+        'supprime_le'      => 'datetime',
     ];
+
+    /** Exclut automatiquement les émissions supprimées (soft-delete) de toutes les requêtes. */
+    protected static function booted(): void
+    {
+        static::addGlobalScope('nonSupprime', fn (Builder $query) => $query->whereNull('emission_taxe.supprime_le'));
+    }
+
+    public function estSupprime(): bool
+    {
+        return $this->supprime_le !== null;
+    }
 
     public function etablissement(): BelongsTo
     {

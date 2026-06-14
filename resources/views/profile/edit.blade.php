@@ -43,6 +43,15 @@
                             <span class="badge bg-secondary">Aucun rôle</span>
                         @endforelse
                     </div>
+                    <div class="mt-3">
+                        <form method="POST" action="{{ route('logout') }}"
+                              onsubmit="return confirm('Confirmer la déconnexion ?')">
+                            @csrf
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <span class="fas fa-sign-out-alt me-1"></span>Se déconnecter
+                            </button>
+                        </form>
+                    </div>
                     <div class="border-bottom border-dashed my-4 d-lg-none"></div>
                 </div>
                 <div class="col ps-2 ps-lg-3">

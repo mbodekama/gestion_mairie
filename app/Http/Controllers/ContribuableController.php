@@ -171,10 +171,34 @@ class ContribuableController extends Controller
 
         $auditLabels = $contribuable->auditLabels ?? [];
 
+        // Suppression impossible si le contribuable a des émissions (impositions) / recouvrements
+        $suppressionBloquee = $contribuable->etablissements()->whereHas('emissionsTaxe')->exists();
+
         return view('contribuables.show', compact(
             'contribuable', 'totalEmis', 'totalRecouvre', 'solde', 'emissions',
-            'historiques', 'auditLabels',
+            'historiques', 'auditLabels', 'suppressionBloquee',
         ));
+    }
+
+    public function destroy(Request $request, Contribuable $contribuable): RedirectResponse
+    {
+        if ($contribuable->etablissements()->whereHas('emissionsTaxe')->exists()) {
+            return back()->with('error', 'Impossible de supprimer un contribuable rattaché à des impositions ou recouvrements.');
+        }
+
+        $valide = $request->validate([
+            'motif_suppression' => ['required', 'string', 'max:255'],
+        ], ['motif_suppression.required' => 'Le motif de suppression est obligatoire.']);
+
+        $contribuable->update([
+            'supprime_le'       => now(),
+            'motif_suppression' => $valide['motif_suppression'],
+            'supprime_par'      => auth()->id(),
+            'updated_by'        => auth()->id(),
+        ]);
+
+        return redirect()->route('contribuables.index')
+            ->with('success', 'Contribuable supprimé.');
     }
 
     public function edit(Contribuable $contribuable): View
