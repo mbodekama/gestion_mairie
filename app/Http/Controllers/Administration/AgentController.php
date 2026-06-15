@@ -4,13 +4,17 @@ namespace App\Http\Controllers\Administration;
 
 use App\Http\Controllers\Controller;
 use App\Http\FiltreDataForm\AgentFiltreForm;
+use App\Http\Requests\AgentRequest;
 use App\Models\Agent;
+use App\Models\Collectivite;
 use App\Models\FonctionAgent;
 use App\Models\GradeAgent;
 use App\Models\Service;
 use App\Services\ExcelExportService;
 use App\Services\SelectOptionsService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
@@ -44,6 +48,76 @@ class AgentController extends Controller
         return view('administration.agents.index', compact(
             'agents', 'filtre', 'services', 'fonctions', 'grades', 'sortActuel', 'dirActuelle',
         ));
+    }
+
+    public function create(): View
+    {
+        return view('administration.agents.create', $this->referentiels());
+    }
+
+    public function store(AgentRequest $request): RedirectResponse
+    {
+        $donnees = $request->validated();
+        $donnees['collectivite_id'] = Collectivite::value('id');
+
+        $agent = Agent::create($donnees);
+
+        return redirect()->route('agents.show', $agent)
+            ->with('success', 'Agent ' . $agent->matricule . ' créé avec succès.');
+    }
+
+    public function show(Agent $agent): View
+    {
+        $agent->load(['fonctionAgent', 'gradeAgent', 'service', 'superieur', 'subordonnes', 'utilisateurs']);
+
+        return view('administration.agents.show', compact('agent'));
+    }
+
+    public function edit(Agent $agent): View
+    {
+        return view('administration.agents.edit', array_merge(
+            ['agent' => $agent],
+            $this->referentiels($agent),
+        ));
+    }
+
+    public function update(AgentRequest $request, Agent $agent): RedirectResponse
+    {
+        $agent->update($request->validated());
+
+        return redirect()->route('agents.show', $agent)
+            ->with('success', 'Agent ' . $agent->matricule . ' mis à jour.');
+    }
+
+    public function destroy(Agent $agent): RedirectResponse
+    {
+        // Garde-fou : un agent rattaché à un compte utilisateur n'est pas supprimable.
+        if ($agent->utilisateurs()->exists()) {
+            return back()->with('error', 'Impossible de supprimer un agent rattaché à un compte utilisateur.');
+        }
+
+        $matricule = $agent->matricule;
+        $agent->delete();
+
+        return redirect()->route('agents.index')
+            ->with('success', 'Agent ' . $matricule . ' supprimé.');
+    }
+
+    /**
+     * Référentiels communs aux formulaires de création/édition.
+     * Exclut l'agent courant de la liste des supérieurs possibles.
+     *
+     * @return array<string, mixed>
+     */
+    private function referentiels(?Agent $agent = null): array
+    {
+        return [
+            'fonctions'  => $this->selectOptions->charger(FonctionAgent::class, 'libelle'),
+            'grades'     => $this->selectOptions->charger(GradeAgent::class, 'libelle'),
+            'services'   => $this->selectOptions->charger(Service::class, 'libelle'),
+            'superieurs' => Agent::when($agent, fn ($q) => $q->whereKeyNot($agent->id))
+                ->orderBy('nom')->get(['id', 'matricule', 'nom', 'prenoms']),
+        ];
     }
 
     public function export(Request $request, ExcelExportService $excel): BinaryFileResponse

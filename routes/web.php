@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\ContribuableController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\ControleController;
 use App\Http\Controllers\ControleFiscalController;
 use App\Http\Controllers\ConvocationController;
+use App\Http\Controllers\RedressementController;
 use App\Http\Controllers\DossierController;
 use App\Http\Controllers\EmissionTaxeController;
 use App\Http\Controllers\EtablissementController;
@@ -16,6 +18,7 @@ use App\Http\Controllers\Parametrage\TypePersonneController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RecouvrementController;
 use App\Http\Controllers\Administration\AgentController;
+use App\Http\Controllers\Administration\ServiceController;
 use App\Http\Controllers\Administration\AuditController;
 use App\Http\Controllers\Administration\JournalController;
 use App\Http\Controllers\Administration\ParametreController;
@@ -53,6 +56,7 @@ Route::middleware(['auth', 'session.lock'])->group(function () {
     Route::resource('emissions',         EmissionTaxeController::class);
     // Calcul des montants depuis le barème (bouton « Calculer » du formulaire émission)
     Route::post('emissions/liquider', [EmissionTaxeController::class, 'liquider'])->name('emissions.liquider');
+    Route::get('emissions/{emission}/avis', [EmissionTaxeController::class, 'avis'])->name('emissions.avis');
     Route::resource('recouvrements',     RecouvrementController::class);
     // Quittance PDF d'un règlement (regroupe les règlements de la même quittance)
     Route::get('recouvrements/{recouvrement}/quittance', [RecouvrementController::class, 'quittance'])
@@ -79,6 +83,33 @@ Route::middleware(['auth', 'session.lock'])->group(function () {
          ->parameters(['controle-fiscal' => 'controleFiscal']);
     Route::post('controle-fiscal/filtre', [ControleFiscalController::class, 'index'])->name('controle-fiscal.filtre');
     Route::post('controle-fiscal/export', [ControleFiscalController::class, 'export'])->name('controle-fiscal.export');
+
+    // ===== Gestion du Contrôle (workflow) =====
+    Route::get('controles', [ControleController::class, 'index'])->middleware('can:CONTROLE_CONSULTER')->name('controles.index');
+    Route::post('controles/filtre', [ControleController::class, 'index'])->middleware('can:CONTROLE_CONSULTER')->name('controles.filtre');
+    Route::post('controles/export', [ControleController::class, 'export'])->middleware('can:CONTROLE_CONSULTER')->name('controles.export');
+    Route::get('controles/create', [ControleController::class, 'create'])->middleware('can:CONTROLE_INSTRUIRE')->name('controles.create');
+    Route::post('controles', [ControleController::class, 'store'])->middleware('can:CONTROLE_INSTRUIRE')->name('controles.store');
+    Route::get('controles/{controle}', [ControleController::class, 'show'])->middleware('can:CONTROLE_CONSULTER')->name('controles.show');
+    Route::get('controles/{controle}/edit', [ControleController::class, 'edit'])->middleware('can:CONTROLE_INSTRUIRE')->name('controles.edit');
+    Route::match(['put', 'patch'], 'controles/{controle}', [ControleController::class, 'update'])->middleware('can:CONTROLE_INSTRUIRE')->name('controles.update');
+    Route::delete('controles/{controle}', [ControleController::class, 'destroy'])->middleware('can:CONTROLE_INSTRUIRE')->name('controles.destroy');
+    Route::get('controles/{controle}/convocation-pdf', [ControleController::class, 'convocationPdf'])->middleware('can:CONTROLE_CONSULTER')->name('controles.convocation.pdf');
+    Route::get('controles/{controle}/pv-cloture', [ControleController::class, 'pvCloture'])->middleware('can:CONTROLE_CONSULTER')->name('controles.pv-cloture');
+    Route::get('controles/{controle}/rapport', [ControleController::class, 'rapport'])->middleware('can:CONTROLE_EXECUTER')->name('controles.rapport');
+    Route::post('controles/{controle}/rapport', [ControleController::class, 'rapportStore'])->middleware('can:CONTROLE_EXECUTER')->name('controles.rapport.store');
+    // Transition générique : la permission précise est vérifiée par le service selon la transition.
+    Route::post('controles/{controle}/transition', [ControleController::class, 'transition'])->name('controles.transition');
+
+    // ===== Redressements =====
+    Route::get('redressements', [RedressementController::class, 'index'])->middleware('can:REDRESS_CONSULTER')->name('redressements.index');
+    Route::post('redressements/filtre', [RedressementController::class, 'index'])->middleware('can:REDRESS_CONSULTER')->name('redressements.filtre');
+    Route::post('redressements/export', [RedressementController::class, 'export'])->middleware('can:REDRESS_CONSULTER')->name('redressements.export');
+    Route::get('redressements/{redressement}', [RedressementController::class, 'show'])->middleware('can:REDRESS_CONSULTER')->name('redressements.show');
+    Route::get('redressements/{redressement}/avis', [RedressementController::class, 'avis'])->middleware('can:REDRESS_CONSULTER')->name('redressements.avis');
+    Route::post('redressements/{redressement}/emissions', [RedressementController::class, 'emissions'])->middleware('can:REDRESS_GERER')->name('redressements.emissions');
+    Route::patch('redressements/{redressement}/penalites', [RedressementController::class, 'penalites'])->middleware('can:REDRESS_GERER')->name('redressements.penalites');
+    Route::patch('redressements/{redressement}/etat', [RedressementController::class, 'etat'])->middleware('can:REDRESS_GERER')->name('redressements.etat');
 
     Route::resource('exonerations', ExonerationController::class);
     Route::post('exonerations/filtre', [ExonerationController::class, 'index'])->name('exonerations.filtre');
@@ -121,12 +152,17 @@ Route::middleware(['auth', 'session.lock'])->group(function () {
         Route::post('obligations/export', [ObligationController::class, 'export'])->name('obligations.export');
 
         Route::get('rapports', [RapportController::class, 'index'])->name('rapports.index');
+        Route::get('rapports/exonerations', [RapportController::class, 'exonerations'])->name('rapports.exonerations');
     });
 
     // ===== Administration =====
     Route::resource('agents', AgentController::class);
     Route::post('agents/filtre', [AgentController::class, 'index'])->name('agents.filtre');
     Route::post('agents/export', [AgentController::class, 'export'])->name('agents.export');
+
+    Route::resource('services', ServiceController::class);
+    Route::post('services/filtre', [ServiceController::class, 'index'])->name('services.filtre');
+    Route::post('services/export', [ServiceController::class, 'export'])->name('services.export');
 
     Route::prefix('administration')->name('administration.')->group(function () {
         Route::resource('journal', JournalController::class)->only(['index']);

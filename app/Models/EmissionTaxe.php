@@ -21,6 +21,8 @@ class EmissionTaxe extends Model
         'montant_annuel'   => 'decimal:2',
         'montant_periode'  => 'decimal:2',
         'montant_prorata'  => 'decimal:2',
+        'penalite'         => 'decimal:2',
+        'montant_exonere'  => 'decimal:2',
         'date_declaration' => 'date',
         'date_liquidation' => 'date',
         'supprime_le'      => 'datetime',
@@ -50,6 +52,18 @@ class EmissionTaxe extends Model
     public function dossier(): BelongsTo
     {
         return $this->belongsTo(Dossier::class);
+    }
+
+    /** Redressement à l'origine de cette émission complémentaire (le cas échéant). */
+    public function redressement(): BelongsTo
+    {
+        return $this->belongsTo(Redressement::class);
+    }
+
+    /** Exonération appliquée à cette émission (le cas échéant). */
+    public function exoneration(): BelongsTo
+    {
+        return $this->belongsTo(Exoneration::class);
     }
 
     public function natureTaxe(): BelongsTo

@@ -44,6 +44,11 @@ class RolePermissionSeeder extends Seeder
             'EXO_CONSULTER', 'EXO_CREER', 'EXO_MODIFIER', 'EXO_SUPPRIMER',
             // Contrôle / sanctions
             'CONTROLE_CONSULTER', 'CONTROLE_GERER', 'CONTROLE_SANCTIONNER',
+            // Workflow du contrôle (valideurs distincts par étape)
+            'CONTROLE_INSTRUIRE', 'CONTROLE_VALIDER', 'CONTROLE_EXECUTER',
+            'CONTROLE_CLOTURER', 'CONTROLE_REDRESSER',
+            // Redressement
+            'REDRESS_CONSULTER', 'REDRESS_GERER',
             // Référentiel territorial
             'TERRITOIRE_CONSULTER', 'TERRITOIRE_GERER',
             // Collectivités
@@ -80,7 +85,7 @@ class RolePermissionSeeder extends Seeder
         $prefixesMetier = [
             'CONTRIB_', 'ETAB_', 'DIRIG_', 'ACTIVITE_', 'PARAMFISC_', 'EXERCICE_',
             'EMISSION_', 'TF_', 'RECOUVR_', 'DOSSIER_', 'CONVOC_', 'EXO_',
-            'CONTROLE_', 'TERRITOIRE_', 'COLLECTIVITE_', 'PILOTAGE_', 'EDITION_', 'AUDIT_',
+            'CONTROLE_', 'REDRESS_', 'TERRITOIRE_', 'COLLECTIVITE_', 'PILOTAGE_', 'EDITION_', 'AUDIT_',
         ];
         Role::findOrCreate('ADMIN_FISC')->syncPermissions(
             array_values(array_filter($permissions, function ($p) use ($prefixesMetier) {
@@ -128,13 +133,26 @@ class RolePermissionSeeder extends Seeder
             'EDITION_GENERER',
         ]);
 
-        // CONTROLEUR : convocations, contrôle, exonérations, sanctions
+        // CONTROLEUR : instruit et exécute les contrôles (sans valider/clôturer)
         Role::findOrCreate('CONTROLEUR')->syncPermissions([
             'CONTRIB_CONSULTER', 'ETAB_CONSULTER',
             'EMISSION_CONSULTER', 'RECOUVR_CONSULTER',
             'CONVOC_CONSULTER', 'CONVOC_CREER', 'CONVOC_MODIFIER', 'CONVOC_IMPRIMER',
             'CONTROLE_CONSULTER', 'CONTROLE_SANCTIONNER',
+            'CONTROLE_INSTRUIRE', 'CONTROLE_EXECUTER',
+            'REDRESS_CONSULTER',
             'EXO_CONSULTER', 'EXO_CREER', 'EXO_MODIFIER',
+            'EDITION_GENERER',
+        ]);
+
+        // SUPERVISEUR_CONTROLE : valide, clôture et décide du redressement
+        // (séparation des responsabilités : ne peut pas instruire/exécuter)
+        Role::findOrCreate('SUPERVISEUR_CONTROLE')->syncPermissions([
+            'CONTRIB_CONSULTER', 'ETAB_CONSULTER',
+            'EMISSION_CONSULTER', 'RECOUVR_CONSULTER',
+            'CONVOC_CONSULTER', 'CONVOC_IMPRIMER',
+            'CONTROLE_CONSULTER', 'CONTROLE_VALIDER', 'CONTROLE_CLOTURER', 'CONTROLE_REDRESSER',
+            'REDRESS_CONSULTER', 'REDRESS_GERER',
             'EDITION_GENERER',
         ]);
 
@@ -147,6 +165,7 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'Caissier',               'email' => 'caisse@mairie.ci',      'role' => 'CAISSIER'],
             ['name' => 'Gestionnaire Dossiers',  'email' => 'dossiers@mairie.ci',    'role' => 'GEST_DOSSIER'],
             ['name' => 'Contrôleur Fiscal',      'email' => 'controleur@mairie.ci',  'role' => 'CONTROLEUR'],
+            ['name' => 'Superviseur Contrôle',   'email' => 'superviseur@mairie.ci', 'role' => 'SUPERVISEUR_CONTROLE'],
             ['name' => 'Consultant',             'email' => 'consult@mairie.ci',     'role' => 'CONSULT'],
         ];
 

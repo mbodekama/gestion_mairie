@@ -86,6 +86,8 @@
         </div>
     </div>
 
+    @include('exonerations._lignes')
+
     <div class="d-flex justify-content-end gap-2 mb-4">
         <a href="{{ $contribuable ? route('contribuables.show', $contribuable) : route('exonerations.index') }}"
            class="btn btn-outline-secondary btn-lg">

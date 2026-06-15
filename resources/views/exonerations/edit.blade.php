@@ -79,6 +79,8 @@
         </div>
     </div>
 
+    @include('exonerations._lignes')
+
     <div class="d-flex justify-content-end gap-2 mb-4">
         <a href="{{ route('exonerations.show', $exoneration) }}" class="btn btn-outline-secondary btn-lg">
             <span class="fas fa-times me-1"></span>Annuler

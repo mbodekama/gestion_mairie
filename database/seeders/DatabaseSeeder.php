@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             BaremeSqlSeeder::class,
             ZoneFiscaleSeeder::class,
             RolePermissionSeeder::class,
+            ControleWorkflowSeeder::class,
             ReferentielContribuableSeeder::class,
             ContribuableSeeder::class,
             TypeExonerationSeeder::class,

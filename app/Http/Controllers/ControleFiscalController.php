@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\FiltreDataForm\ControleFiscalFiltreForm;
 use App\Models\Agent;
 use App\Models\Collectivite;
-use App\Models\ControleFiscal;
+use App\Models\Convocation;
 use App\Models\Etablissement;
 use App\Models\Service;
 use App\Services\ExcelExportService;
@@ -36,7 +36,7 @@ class ControleFiscalController extends Controller
         $filtre = ControleFiscalFiltreForm::fromRequest($request);
 
         $convocations = $filtre->appliquer(
-            ControleFiscal::with(['etablissement.contribuable', 'service', 'agent'])
+            Convocation::with(['etablissement.contribuable', 'service', 'agent'])
         )->orderBy($sortActuel, $dirActuelle)->paginate(15)->withQueryString();
 
         return view('controle-fiscal.index', compact('convocations', 'filtre', 'sortActuel', 'dirActuelle'));
@@ -75,7 +75,7 @@ class ControleFiscalController extends Controller
         $collectivite = Collectivite::first();
         $annee        = $donnees['annee'];
 
-        $seq = ControleFiscal::where('numero', 'like', "CF{$annee}%")
+        $seq = Convocation::where('numero', 'like', "CF{$annee}%")
             ->orderBy('numero', 'desc')
             ->value('numero');
         $seq = $seq ? ((int) substr($seq, -5) + 1) : 1;
@@ -84,13 +84,13 @@ class ControleFiscalController extends Controller
         $donnees['collectivite_id'] = $collectivite?->id;
         $donnees['created_by']    = auth()->id();
 
-        $controle = ControleFiscal::create($donnees);
+        $controle = Convocation::create($donnees);
 
         return redirect()->route('controle-fiscal.show', $controle)
             ->with('success', 'Contrôle fiscal créé — N° ' . $controle->numero);
     }
 
-    public function show(ControleFiscal $controleFiscal): View
+    public function show(Convocation $controleFiscal): View
     {
         $controleFiscal->load([
             'etablissement.contribuable',
@@ -108,7 +108,7 @@ class ControleFiscalController extends Controller
         return view('controle-fiscal.show', compact('controleFiscal', 'documents'));
     }
 
-    public function edit(ControleFiscal $controleFiscal): View
+    public function edit(Convocation $controleFiscal): View
     {
         $controleFiscal->load(['etablissement.contribuable', 'service', 'agent']);
 
@@ -118,7 +118,7 @@ class ControleFiscalController extends Controller
         return view('controle-fiscal.edit', compact('controleFiscal', 'services', 'agents'));
     }
 
-    public function update(Request $request, ControleFiscal $controleFiscal): RedirectResponse
+    public function update(Request $request, Convocation $controleFiscal): RedirectResponse
     {
         $donnees = $request->validate([
             'annee'             => ['required', 'integer', 'min:2000', 'max:2100'],
@@ -143,7 +143,7 @@ class ControleFiscalController extends Controller
             ->with('success', 'Contrôle fiscal mis à jour.');
     }
 
-    public function destroy(ControleFiscal $controleFiscal): RedirectResponse
+    public function destroy(Convocation $controleFiscal): RedirectResponse
     {
         $etablissementId = $controleFiscal->etablissement_id;
         $controleFiscal->delete();
@@ -165,7 +165,7 @@ class ControleFiscalController extends Controller
             ], $entete));
 
             $filtre->appliquer(
-                ControleFiscal::with(['etablissement.contribuable', 'service'])
+                Convocation::with(['etablissement.contribuable', 'service'])
             )->orderBy('date_convocation', 'desc')->chunk(500, function ($liste) use ($writer): void {
                 foreach ($liste as $c) {
                     $contrib = $c->etablissement?->contribuable;

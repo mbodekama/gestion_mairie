@@ -443,32 +443,6 @@
                 </div>
             @endif
 
-            {{-- Obligations fiscales --}}
-            @if ($contribuable->obligations->isNotEmpty())
-                <div class="card mb-3">
-                    <div class="card-header py-2">
-                        <h5 class="mb-0">
-                            <span class="fas fa-clipboard-list me-2 text-primary"></span>Obligations fiscales
-                        </h5>
-                    </div>
-                    <div class="card-body py-3 fs-9">
-                        <ul class="list-unstyled mb-0">
-                            @foreach ($contribuable->obligations as $obl)
-                                <li class="d-flex align-items-center gap-2 py-1 @if (!$loop->last) border-bottom @endif">
-                                    <span class="fas fa-dot-circle text-primary fa-fw" style="font-size:.6rem;"></span>
-                                    <span>
-                                        {{ $obl->natureTaxe?->libelle_court ?? $obl->natureTaxe?->libelle ?? '—' }}
-                                        @if ($obl->periodicite)
-                                            <span class="text-600 ms-1">({{ $obl->periodicite->libelle ?? '' }})</span>
-                                        @endif
-                                    </span>
-                                </li>
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
-            @endif
-
         </div>{{-- /sticky-top --}}
     </div>{{-- /col-4 --}}
 
@@ -646,6 +620,53 @@
      PIÈCES JOINTES
      ===================================================================== --}}
 <x-documents.panneau :model="$contribuable" />
+
+{{-- =====================================================================
+     OBLIGATIONS FISCALES (obligations actives du contribuable, lecture seule)
+     ===================================================================== --}}
+<div class="card mt-3">
+    <div class="card-header d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0">
+            <span class="fas fa-clipboard-list me-2 text-primary"></span>Obligations fiscales
+            <span class="badge bg-secondary ms-1">{{ $contribuable->obligations->count() }}</span>
+        </h5>
+        <a href="{{ route('pilotage.obligations.create', ['code' => $contribuable->numero_identifiant]) }}"
+           class="btn btn-sm btn-outline-primary" title="Gérer les obligations">
+            <span class="fas fa-edit me-1"></span>Gérer
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover table-striped mb-0 fs-9 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>N°</th>
+                        <th>Code nature</th>
+                        <th>Libellé taxe</th>
+                        <th>Périodicité</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($contribuable->obligations as $i => $obligation)
+                        <tr>
+                            <td>{{ $i + 1 }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ $obligation->natureTaxe?->code ?? '—' }}</span></td>
+                            <td class="fw-semi-bold">{{ $obligation->natureTaxe?->libelle ?? '—' }}</td>
+                            <td>{{ $obligation->periodicite?->libelle ?? '—' }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted">
+                                <span class="fas fa-inbox fa-2x d-block mb-2"></span>
+                                Aucune obligation active pour ce contribuable.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
 {{-- =====================================================================
      HISTORIQUE DES MODIFICATIONS

@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\HasDocuments;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Convocation extends Model
 {
+    use HasDocuments;
+
     protected $table = 'convocation';
     public $timestamps = false;
     const UPDATED_AT = null;
@@ -40,5 +43,11 @@ class Convocation extends Model
     public function agent(): BelongsTo
     {
         return $this->belongsTo(Agent::class);
+    }
+
+    /** Contrôle fiscal à l'origine de cette convocation (le cas échéant). */
+    public function controle(): BelongsTo
+    {
+        return $this->belongsTo(ControleFiscal::class, 'controle_id');
     }
 }

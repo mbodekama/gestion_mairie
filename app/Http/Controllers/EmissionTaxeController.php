@@ -8,10 +8,13 @@ use App\Models\EmissionTaxe;
 use App\Models\Etablissement;
 use App\Models\ExerciceFiscal;
 use App\Models\NatureTaxe;
+use App\Models\Obligation;
 use App\Models\Periodicite;
 use App\Services\ExcelExportService;
+use App\Services\ExonerationService;
 use App\Services\LiquidationTaxeService;
 use App\Services\SelectOptionsService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -51,22 +54,64 @@ class EmissionTaxeController extends Controller
         ));
     }
 
+    /**
+     * Étape 1 (sans `code`) : saisie du numéro d'établissement.
+     * Étape 2 (avec `code`) : formulaire d'émission, la nature de taxe étant
+     * restreinte aux obligations auxquelles le contribuable est assujetti.
+     */
     public function create(Request $request): View
     {
-        $etablissement = $request->query('etablissement_id')
-            ? Etablissement::with('contribuable')->findOrFail($request->query('etablissement_id'))
-            : null;
+        $code = trim((string) $request->query('code', ''));
+
+        // Compatibilité : arrivée depuis un établissement (etablissement_id)
+        if ($code === '' && $request->filled('etablissement_id')) {
+            $code = Etablissement::find($request->query('etablissement_id'))?->numero ?? '';
+        }
+
+        // Compatibilité : arrivée depuis un contribuable n'ayant qu'un seul établissement
+        if ($code === '' && $request->filled('contribuable_id')) {
+            $etabs = Etablissement::whereNull('supprime_le')
+                ->where('contribuable_id', $request->query('contribuable_id'))->get();
+            if ($etabs->count() === 1) {
+                $code = $etabs->first()->numero;
+            }
+        }
+
+        // Étape 1 : formulaire de saisie du numéro d'établissement
+        if ($code === '') {
+            return view('emissions.create', [
+                'exerciceFiscalId' => $request->query('exercice_fiscal_id'),
+            ]);
+        }
+
+        // Étape 2 : résolution de l'établissement
+        $etablissement = Etablissement::with('contribuable')
+            ->whereNull('supprime_le')
+            ->where('numero', $code)
+            ->first();
+
+        if (! $etablissement) {
+            return view('emissions.create', [
+                'code'             => $code,
+                'erreurCode'       => "Aucun établissement trouvé pour « {$code} ».",
+                'exerciceFiscalId' => $request->query('exercice_fiscal_id'),
+            ]);
+        }
+
+        // Nature de taxe limitée aux obligations du contribuable
+        $obligations = Obligation::with(['natureTaxe', 'periodicite'])
+            ->where('contribuable_id', $etablissement->contribuable_id)
+            ->get();
 
         $exerciceDefaut = $request->query('exercice_fiscal_id')
-            ? ExerciceFiscal::findOrFail($request->query('exercice_fiscal_id'))
+            ? ExerciceFiscal::find($request->query('exercice_fiscal_id'))
             : null;
 
         $exercices    = ExerciceFiscal::where('cloture', false)->orderBy('annee', 'desc')->get();
-        $naturesTaxe  = $this->selectOptions->charger(NatureTaxe::class, 'libelle_court');
         $periodicites = $this->selectOptions->charger(Periodicite::class, 'libelle');
 
-        return view('emissions.create', compact(
-            'etablissement', 'exerciceDefaut', 'exercices', 'naturesTaxe', 'periodicites',
+        return view('emissions.emettre', compact(
+            'code', 'etablissement', 'obligations', 'exerciceDefaut', 'exercices', 'periodicites',
         ));
     }
 
@@ -100,7 +145,7 @@ class EmissionTaxeController extends Controller
         return response()->json($resultat);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ExonerationService $exonerations): RedirectResponse
     {
         $donnees = $request->validate([
             'etablissement_id'   => ['required', 'integer', 'exists:etablissement,id'],
@@ -121,15 +166,46 @@ class EmissionTaxeController extends Controller
             return back()->withInput()->with('error', 'Impossible d\'émettre sur un exercice clôturé.');
         }
 
+        $etab = Etablissement::findOrFail($donnees['etablissement_id']);
+
+        // La nature de taxe doit faire partie des obligations du contribuable
+        $estAssujetti = Obligation::where('contribuable_id', $etab->contribuable_id)
+            ->where('nature_taxe_id', $donnees['nature_taxe_id'])
+            ->exists();
+
+        if (! $estAssujetti) {
+            return back()->withInput()->withErrors([
+                'nature_taxe_id' => "Le contribuable n'est pas assujetti à cette nature de taxe.",
+            ]);
+        }
+
         $collectivite = Collectivite::first();
         $annee        = $exercice->annee;
+
+        // Exonération éventuelle : abattement automatique au taux de la ligne active.
+        $baseDue = (float) ($donnees['montant_prorata'] ?? 0) > 0
+            ? (string) $donnees['montant_prorata']
+            : (string) $donnees['montant_annuel'];
+
+        $exo = $exonerations->appliquer($etab->contribuable_id, (int) $donnees['nature_taxe_id'], (int) $annee, $baseDue);
+
+        $messageExo = '';
+        if ($exo) {
+            foreach (['montant_annuel', 'montant_periode', 'montant_prorata'] as $champ) {
+                if (isset($donnees[$champ]) && $donnees[$champ] !== null && $donnees[$champ] !== '') {
+                    $donnees[$champ] = bcmul((string) $donnees[$champ], $exo['facteur'], 2);
+                }
+            }
+            $donnees['exoneration_id']  = $exo['exoneration_id'];
+            $donnees['montant_exonere'] = $exo['montant_exonere'];
+            $messageExo = ' Exonération appliquée (' . rtrim(rtrim($exo['taux'], '0'), '.') . ' %).';
+        }
 
         $seq = EmissionTaxe::where('numero_emission', 'like', "EMI{$annee}%")
             ->orderBy('numero_emission', 'desc')
             ->value('numero_emission');
         $seq = $seq ? ((int) substr($seq, -6) + 1) : 1;
 
-        $etab = Etablissement::findOrFail($donnees['etablissement_id']);
         // Numéros métier générés : émission, fiche (même séquence annuelle) et article
         $donnees['numero_emission'] = "EMI{$annee}" . str_pad($seq, 6, '0', STR_PAD_LEFT);
         $donnees['numero_fiche']    = "FE{$annee}" . str_pad($seq, 6, '0', STR_PAD_LEFT);
@@ -140,7 +216,7 @@ class EmissionTaxeController extends Controller
         $emission = EmissionTaxe::create($donnees);
 
         return redirect()->route('emissions.show', $emission)
-            ->with('success', 'Émission créée avec succès.');
+            ->with('success', 'Émission créée avec succès.' . $messageExo);
     }
 
     public function show(EmissionTaxe $emission): View
@@ -151,6 +227,7 @@ class EmissionTaxeController extends Controller
             'natureTaxe',
             'periodicite',
             'exerciceFiscal',
+            'exoneration',
             'reglements.modeReglement',
             'reglements.typeReglement',
             'reglements.banque',
@@ -165,6 +242,24 @@ class EmissionTaxeController extends Controller
         $suppressionBloquee = $emission->reglements()->exists();
 
         return view('emissions.show', compact('emission', 'montantBase', 'totalRegle', 'soldeDu', 'suppressionBloquee'));
+    }
+
+    /**
+     * Avis d'imposition (PDF) d'une émission, faisant apparaître le montant brut,
+     * l'exonération éventuelle et le montant net dû.
+     */
+    public function avis(EmissionTaxe $emission): \Symfony\Component\HttpFoundation\Response
+    {
+        $emission->load([
+            'etablissement.contribuable', 'natureTaxe', 'periodicite',
+            'exerciceFiscal', 'exoneration',
+        ]);
+
+        $collectivite = Collectivite::first();
+
+        $pdf = Pdf::loadView('emissions.avis-pdf', compact('emission', 'collectivite'))->setPaper('a4');
+
+        return $pdf->download('avis-imposition-' . $emission->numero_emission . '.pdf');
     }
 
     public function edit(EmissionTaxe $emission): View

@@ -1,6 +1,6 @@
 <x-app-layout :title="__('Convocations')">
 
-    <x-page-header titre="Gestion des Convocations" />
+    <x-page-header titre="Convocations & mises en demeure" />
 
     {{-- ===== Card Filtres ===== --}}
     <x-filtre.card :action="route('convocations.filtre')" :reset="route('convocations.index')"
@@ -28,7 +28,7 @@
                     <span class="fas fa-file-excel me-1"></span>Exporter Excel
                 </button>
                 <a href="{{ route('convocations.create') }}" class="btn btn-primary">
-                    <span class="fas fa-plus me-1"></span>Nouvelle convocation
+                    <span class="fas fa-plus me-1"></span>Convocation / mise en demeure
                 </a>
             </div>
         </div>

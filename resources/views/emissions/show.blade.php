@@ -53,6 +53,9 @@
             </div>
 
             <div class="d-flex flex-column flex-sm-row gap-2 flex-shrink-0">
+                <a href="{{ route('emissions.avis', $emission) }}" class="btn btn-light btn-sm" target="_blank">
+                    <span class="fas fa-file-pdf me-1"></span>Avis
+                </a>
                 @if (!$emission->exerciceFiscal?->cloture)
                     <a href="{{ route('emissions.edit', $emission) }}"
                        class="btn btn-light btn-sm">
@@ -219,6 +222,14 @@
 
                         <dt class="col-5 text-600">Montant prorata</dt>
                         <dd class="col-7 fw-semi-bold text-primary">{{ $fcfa($emission->montant_prorata) }}</dd>
+                    @endif
+
+                    @if ($emission->exoneration_id)
+                        <dt class="col-5 text-600">Exonération</dt>
+                        <dd class="col-7">
+                            <a href="{{ route('exonerations.show', $emission->exoneration_id) }}">{{ $emission->exoneration?->numero }}</a>
+                            <span class="badge bg-success ms-1">−{{ $fcfa($emission->montant_exonere) }}</span>
+                        </dd>
                     @endif
 
                     <dt class="col-5 text-600">Date déclaration</dt>

@@ -154,8 +154,7 @@
                                 @php
                                     $gestionFiscaleActif = request()->routeIs('emissions.*')
                                         || request()->routeIs('recouvrements.*')
-                                        || request()->routeIs('parametrage.regimes-imposition.*')
-                                        || request()->routeIs('pilotage.obligations.*');
+                                        || request()->routeIs('parametrage.regimes-imposition.*');
                                 @endphp
                                 <a class="nav-link dropdown-indicator {{ $gestionFiscaleActif ? '' : 'collapsed' }}"
                                    href="#gestionFiscaleCollapse"
@@ -193,32 +192,36 @@
                                                 </div>
                                             </a>
                                         </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link {{ request()->routeIs('pilotage.obligations.*') ? 'active' : '' }}" href="{{ route('pilotage.obligations.index') }}">
-                                                <div class="d-flex align-items-center">
-                                                    <span class="nav-link-icon"><span class="fas fa-tasks"></span></span>
-                                                    <span class="nav-link-text ps-1">Obligations</span>
-                                                </div>
-                                            </a>
-                                        </li>
                                     </ul>
                                 </div>
                             </li>
 
-                            {{-- ===== Contrôle fiscal ===== --}}
+                            {{-- ===== Gestion du Contrôle ===== --}}
                             <li class="nav-item">
                                 <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
-                                    <div class="col-auto navbar-vertical-label">Contrôle &amp; Dossiers</div>
+                                    <div class="col-auto navbar-vertical-label">Gestion du Contrôle</div>
                                     <div class="col ps-0"><hr class="mb-0 navbar-vertical-divider" /></div>
                                 </div>
 
-                                <a class="nav-link {{ request()->routeIs('controle-fiscal.*') ? 'active' : '' }}"
-                                   href="{{ route('controle-fiscal.index') }}">
-                                    <div class="d-flex align-items-center">
-                                        <span class="nav-link-icon"><span class="fas fa-shield-alt"></span></span>
-                                        <span class="nav-link-text ps-1">Contrôle &amp; Sanctions</span>
-                                    </div>
-                                </a>
+                                @can('CONTROLE_CONSULTER')
+                                    <a class="nav-link {{ request()->routeIs('controles.*') ? 'active' : '' }}"
+                                       href="{{ route('controles.index') }}">
+                                        <div class="d-flex align-items-center">
+                                            <span class="nav-link-icon"><span class="fas fa-search-dollar"></span></span>
+                                            <span class="nav-link-text ps-1">Contrôles fiscaux</span>
+                                        </div>
+                                    </a>
+                                @endcan
+
+                                @can('REDRESS_CONSULTER')
+                                    <a class="nav-link {{ request()->routeIs('redressements.*') ? 'active' : '' }}"
+                                       href="{{ route('redressements.index') }}">
+                                        <div class="d-flex align-items-center">
+                                            <span class="nav-link-icon"><span class="fas fa-gavel"></span></span>
+                                            <span class="nav-link-text ps-1">Redressements</span>
+                                        </div>
+                                    </a>
+                                @endcan
 
                                 <a class="nav-link {{ request()->routeIs('exonerations.*') ? 'active' : '' }}"
                                    href="{{ route('exonerations.index') }}">
@@ -228,19 +231,11 @@
                                     </div>
                                 </a>
 
-                                <a class="nav-link {{ request()->routeIs('dossiers.*') ? 'active' : '' }}"
-                                   href="{{ route('dossiers.index') }}">
-                                    <div class="d-flex align-items-center">
-                                        <span class="nav-link-icon"><span class="fas fa-folder-open"></span></span>
-                                        <span class="nav-link-text ps-1">Dossier administratif</span>
-                                    </div>
-                                </a>
-
                                 <a class="nav-link {{ request()->routeIs('convocations.*') ? 'active' : '' }}"
                                    href="{{ route('convocations.index') }}">
                                     <div class="d-flex align-items-center">
                                         <span class="nav-link-icon"><span class="fas fa-envelope"></span></span>
-                                        <span class="nav-link-text ps-1">Convocations</span>
+                                        <span class="nav-link-text ps-1">Convocations &amp; mises en demeure</span>
                                     </div>
                                 </a>
                             </li>
@@ -323,6 +318,7 @@
 
                                 @php
                                     $securiteActif = request()->routeIs('agents.*')
+                                        || request()->routeIs('services.*')
                                         || request()->routeIs('administration.journal.*')
                                         || request()->routeIs('administration.audit.*');
                                 @endphp
@@ -343,6 +339,14 @@
                                                 <div class="d-flex align-items-center">
                                                     <span class="nav-link-icon"><span class="fas fa-user-shield"></span></span>
                                                     <span class="nav-link-text ps-1">Agents &amp; Accès</span>
+                                                </div>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ request()->routeIs('services.*') ? 'active' : '' }}" href="{{ route('services.index') }}">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="nav-link-icon"><span class="fas fa-building"></span></span>
+                                                    <span class="nav-link-text ps-1">Services</span>
                                                 </div>
                                             </a>
                                         </li>

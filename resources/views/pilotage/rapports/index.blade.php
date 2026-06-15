@@ -104,12 +104,22 @@
                         </div>
                     </div>
                     <p class="text-muted fs-9 flex-grow-1">
-                        Rapport détaillant les exonérations accordées, les montants correspondants
-                        et les bases légales (décrets, arrêtés).
+                        État de restitution des montants effectivement exonérés sur les émissions,
+                        par exercice et nature de taxe, avec les bases légales (décrets).
                     </p>
-                    <a href="#" class="btn btn-outline-secondary btn-sm mt-auto">
-                        <span class="fas fa-download me-1"></span>Générer PDF
-                    </a>
+                    <form method="GET" action="{{ route('pilotage.rapports.exonerations') }}" class="mt-auto" target="_blank">
+                        <div class="input-group input-group-sm">
+                            <select name="exercice_fiscal_id" class="form-select">
+                                <option value="">Tous exercices</option>
+                                @foreach ($exercices as $ex)
+                                    <option value="{{ $ex->id }}">{{ $ex->annee }}</option>
+                                @endforeach
+                            </select>
+                            <button type="submit" class="btn btn-outline-secondary">
+                                <span class="fas fa-download me-1"></span>PDF
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

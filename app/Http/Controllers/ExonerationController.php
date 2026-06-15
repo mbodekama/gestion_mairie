@@ -6,10 +6,13 @@ use App\Http\FiltreDataForm\ExonerationFiltreForm;
 use App\Models\Collectivite;
 use App\Models\Contribuable;
 use App\Models\Exoneration;
+use App\Models\LigneExoneration;
+use App\Models\NatureTaxe;
 use App\Models\TypeExoneration;
 use App\Services\ExcelExportService;
 use App\Services\SelectOptionsService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use OpenSpout\Common\Entity\Row;
@@ -52,8 +55,9 @@ class ExonerationController extends Controller
             : null;
 
         $typesExoneration = $this->selectOptions->charger(TypeExoneration::class, 'libelle');
+        $naturesTaxe      = NatureTaxe::orderBy('code')->get();
 
-        return view('exonerations.create', compact('contribuable', 'typesExoneration'));
+        return view('exonerations.create', compact('contribuable', 'typesExoneration', 'naturesTaxe'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -73,6 +77,8 @@ class ExonerationController extends Controller
         }
 
         $donnees = $this->valider($request, contribuableRequis: true);
+        $lignes  = $donnees['lignes'];
+        unset($donnees['lignes']);
 
         $annee = now()->year;
         $seq   = Exoneration::where('numero', 'like', "EXO{$annee}%")
@@ -83,7 +89,12 @@ class ExonerationController extends Controller
         $donnees['collectivite_id'] = Collectivite::value('id');
         $donnees['created_by']      = auth()->id();
 
-        $exoneration = Exoneration::create($donnees);
+        $exoneration = DB::transaction(function () use ($donnees, $lignes) {
+            $exoneration = Exoneration::create($donnees);
+            $this->synchroniserLignes($exoneration, $lignes);
+
+            return $exoneration;
+        });
 
         return redirect()->route('exonerations.show', $exoneration)
             ->with('success', 'Exonération créée — N° ' . $exoneration->numero);
@@ -91,26 +102,50 @@ class ExonerationController extends Controller
 
     public function show(Exoneration $exoneration): View
     {
-        $exoneration->load(['contribuable', 'typeExoneration']);
+        $exoneration->load(['contribuable', 'typeExoneration', 'lignes.natureTaxe']);
 
         return view('exonerations.show', compact('exoneration'));
     }
 
     public function edit(Exoneration $exoneration): View
     {
-        $exoneration->load(['contribuable', 'typeExoneration']);
+        $exoneration->load(['contribuable', 'typeExoneration', 'lignes']);
 
         $typesExoneration = $this->selectOptions->charger(TypeExoneration::class, 'libelle');
+        $naturesTaxe      = NatureTaxe::orderBy('code')->get();
 
-        return view('exonerations.edit', compact('exoneration', 'typesExoneration'));
+        return view('exonerations.edit', compact('exoneration', 'typesExoneration', 'naturesTaxe'));
     }
 
     public function update(Request $request, Exoneration $exoneration): RedirectResponse
     {
-        $exoneration->update($this->valider($request));
+        $donnees = $this->valider($request);
+        $lignes  = $donnees['lignes'];
+        unset($donnees['lignes']);
+
+        DB::transaction(function () use ($exoneration, $donnees, $lignes) {
+            $exoneration->update($donnees);
+            $this->synchroniserLignes($exoneration, $lignes);
+        });
 
         return redirect()->route('exonerations.show', $exoneration)
             ->with('success', 'Exonération mise à jour.');
+    }
+
+    /** Remplace l'ensemble des lignes (taxes exonérées) de l'exonération. */
+    private function synchroniserLignes(Exoneration $exoneration, array $lignes): void
+    {
+        $exoneration->lignes()->delete();
+
+        foreach ($lignes as $ligne) {
+            LigneExoneration::create([
+                'exoneration_id'   => $exoneration->id,
+                'nature_taxe_id'   => $ligne['nature_taxe_id'],
+                'annee_application' => $ligne['annee_application'],
+                'taux'             => $ligne['taux'],
+                'created_by'       => auth()->id(),
+            ]);
+        }
     }
 
     public function destroy(Exoneration $exoneration): RedirectResponse
@@ -132,6 +167,14 @@ class ExonerationController extends Controller
             'zone'                => ['nullable', 'string', 'max:2'],
             'date_debut'          => ['nullable', 'date'],
             'date_fin'            => ['nullable', 'date', 'after_or_equal:date_debut'],
+
+            // Taxes exonérées : nature + année d'application + taux d'exonération
+            'lignes'                     => ['required', 'array', 'min:1'],
+            'lignes.*.nature_taxe_id'    => ['required', 'integer', 'exists:nature_taxe,id'],
+            'lignes.*.annee_application' => ['required', 'integer', 'min:2000', 'max:2100'],
+            'lignes.*.taux'              => ['required', 'numeric', 'min:0', 'max:100'],
+        ], [
+            'lignes.required' => 'Ajoutez au moins une taxe exonérée.',
         ]);
     }
 
