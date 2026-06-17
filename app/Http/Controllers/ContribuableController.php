@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\FiltreDataForm\ContribuableFiltreForm;
+use App\Http\Requests\ContribuableRequest;
 use App\Models\Collectivite;
 use App\Models\Contribuable;
 use App\Models\EmissionTaxe;
@@ -18,7 +19,6 @@ use App\Services\SelectOptionsService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
@@ -68,47 +68,9 @@ class ContribuableController extends Controller
         ));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(ContribuableRequest $request): RedirectResponse
     {
-        $typePersonne = $request->input('type_personne');
-
-        $donnees = $request->validate([
-            'type_personne'        => ['required', 'in:PP,PM'],
-            'numero_compte'        => ['nullable', 'string', 'max:50', Rule::unique('contribuable', 'numero_compte')],
-            'statut'               => ['required', 'string', 'max:20'],
-            'regime_imposition_id' => ['nullable', 'integer', 'exists:regime_imposition,id'],
-            // Contacts
-            'telephone'            => ['nullable', 'string', 'max:30'],
-            'cellulaire'           => ['nullable', 'string', 'max:30'],
-            'fax'                  => ['nullable', 'string', 'max:30'],
-            'email'                => ['nullable', 'email', 'max:150'],
-            'boite_postale'        => ['nullable', 'string', 'max:50'],
-            // PP
-            'nom'                  => ['nullable', 'required_if:type_personne,PP', 'string', 'max:100'],
-            'prenoms'              => ['nullable', 'string', 'max:150'],
-            'sexe'                 => ['nullable', 'in:M,F'],
-            'date_naissance'       => ['nullable', 'date'],
-            'lieu_naissance'       => ['nullable', 'string', 'max:100'],
-            'nationalite_id'       => ['nullable', 'integer', 'exists:nationalite,id'],
-            'nature_piece'         => ['nullable', 'string', 'max:50'],
-            'numero_piece'         => ['nullable', 'string', 'max:50'],
-            'nom_pere'             => ['nullable', 'string', 'max:100'],
-            'prenoms_pere'         => ['nullable', 'string', 'max:150'],
-            'nom_mere'             => ['nullable', 'string', 'max:100'],
-            'prenoms_mere'         => ['nullable', 'string', 'max:150'],
-            // PM
-            'raison_sociale'           => ['nullable', 'required_if:type_personne,PM', 'string', 'max:200'],
-            'sigle'                    => ['nullable', 'string', 'max:20'],
-            'denomination_commerciale' => ['nullable', 'string', 'max:200'],
-            'forme_juridique_id'       => ['nullable', 'integer', 'exists:forme_juridique,id'],
-            'registre_commerce'        => ['nullable', 'string', 'max:50'],
-            'date_registre_commerce'   => ['nullable', 'date'],
-            'ville_registre_commerce'  => ['nullable', 'string', 'max:100'],
-            'nombre_associes'          => ['nullable', 'integer', 'min:0'],
-            'capital_social'           => ['nullable', 'numeric', 'min:0'],
-        ], [
-            'numero_compte.unique' => 'Ce numéro de compte est déjà utilisé par un autre contribuable.',
-        ]);
+        $donnees = $request->validated();
 
         $annee      = now()->year;
         $dernierNum = Contribuable::where('numero_identifiant', 'like', "CI{$annee}%")
@@ -215,46 +177,9 @@ class ContribuableController extends Controller
         ));
     }
 
-    public function update(Request $request, Contribuable $contribuable): RedirectResponse
+    public function update(ContribuableRequest $request, Contribuable $contribuable): RedirectResponse
     {
-        $estPP = $contribuable->type_personne === 'PP';
-
-        $donnees = $request->validate([
-            'numero_compte'        => ['nullable', 'string', 'max:50'],
-            'statut'               => ['required', 'string', 'max:20'],
-            'regime_imposition_id' => ['nullable', 'integer', 'exists:regime_imposition,id'],
-            // Contacts
-            'telephone'            => ['nullable', 'string', 'max:30'],
-            'cellulaire'           => ['nullable', 'string', 'max:30'],
-            'fax'                  => ['nullable', 'string', 'max:30'],
-            'email'                => ['nullable', 'email', 'max:150'],
-            'boite_postale'        => ['nullable', 'string', 'max:50'],
-            // PP
-            'nom'                  => ['nullable', 'string', 'max:100'],
-            'prenoms'              => ['nullable', 'string', 'max:150'],
-            'sexe'                 => ['nullable', 'in:M,F'],
-            'date_naissance'       => ['nullable', 'date'],
-            'lieu_naissance'       => ['nullable', 'string', 'max:100'],
-            'nationalite_id'       => ['nullable', 'integer', 'exists:nationalite,id'],
-            'nature_piece'         => ['nullable', 'string', 'max:50'],
-            'numero_piece'         => ['nullable', 'string', 'max:50'],
-            'nom_pere'             => ['nullable', 'string', 'max:100'],
-            'prenoms_pere'         => ['nullable', 'string', 'max:150'],
-            'nom_mere'             => ['nullable', 'string', 'max:100'],
-            'prenoms_mere'         => ['nullable', 'string', 'max:150'],
-            // PM
-            'raison_sociale'               => ['nullable', 'string', 'max:200'],
-            'sigle'                        => ['nullable', 'string', 'max:20'],
-            'denomination_commerciale'     => ['nullable', 'string', 'max:200'],
-            'forme_juridique_id'           => ['nullable', 'integer', 'exists:forme_juridique,id'],
-            'registre_commerce'            => ['nullable', 'string', 'max:50'],
-            'date_registre_commerce'       => ['nullable', 'date'],
-            'ville_registre_commerce'      => ['nullable', 'string', 'max:100'],
-            'nombre_associes'              => ['nullable', 'integer', 'min:0'],
-            'capital_social'               => ['nullable', 'numeric', 'min:0'],
-        ]);
-
-        $contribuable->update($donnees);
+        $contribuable->update($request->validated());
 
         return redirect()->route('contribuables.show', $contribuable)
             ->with('success', 'Contribuable mis à jour avec succès.');
