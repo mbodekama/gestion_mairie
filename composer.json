@@ -7,10 +7,13 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
+        "bacon/bacon-qr-code": "^3.1",
         "barryvdh/laravel-dompdf": "^3.1",
         "filament/filament": "^4.0",
         "laravel/framework": "^13.8",
         "laravel/tinker": "^3.0",
+        "matthew-elisha/fpdf-easytable": "dev-master",
+        "setasign/fpdf": "^1.8",
         "spatie/laravel-permission": "^8.0"
     },
     "require-dev": {
@@ -54,6 +57,7 @@
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php scripts/fix-fpdf-leading-whitespace.php",
             "@php artisan package:discover --ansi",
             "@php artisan filament:upgrade"
         ],

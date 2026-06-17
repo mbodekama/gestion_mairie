@@ -9,19 +9,7 @@
 <x-page-header titre="Obligations fiscales du contribuable"
                sous-titre="Étape 2 — Assigner ou retirer les obligations" />
 
-@if (session('success'))
-    <div class="alert alert-success alert-dismissible py-2 fs-9" role="alert">
-        {{ session('success') }}
-        <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
-    </div>
-@endif
 
-@if (session('error'))
-    <div class="alert alert-danger alert-dismissible py-2 fs-9" role="alert">
-        {{ session('error') }}
-        <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
-    </div>
-@endif
 
 {{-- ===== Card Contribuable ===== --}}
 <div class="card mb-3">

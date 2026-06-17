@@ -13,18 +13,21 @@ use App\Models\ModeReglement;
 use App\Models\Recette;
 use App\Models\ReglementTaxe;
 use App\Models\TypeReglement;
+use App\Pdf\Quittance;
 use App\Services\ExcelExportService;
 use App\Services\SelectOptionsService;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
-use Symfony\Component\HttpFoundation\Response;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class RecouvrementController extends Controller
 {
@@ -39,10 +42,10 @@ class RecouvrementController extends Controller
     public function index(Request $request)
     {
         $exercices = $this->selectOptions->charger(ExerciceFiscal::class, 'annee');
-        $modes     = $this->selectOptions->charger(ModeReglement::class, 'libelle');
-        $types     = $this->selectOptions->charger(TypeReglement::class, 'libelle');
+        $modes = $this->selectOptions->charger(ModeReglement::class, 'libelle');
+        $types = $this->selectOptions->charger(TypeReglement::class, 'libelle');
 
-        $sortActuel  = in_array($request->query('sort'), self::COLONNES_TRI, true)
+        $sortActuel = in_array($request->query('sort'), self::COLONNES_TRI, true)
                        ? $request->query('sort') : 'date_reglement';
         $dirActuelle = $request->query('dir') === 'asc' ? 'asc' : 'desc';
 
@@ -88,17 +91,17 @@ class RecouvrementController extends Controller
 
         if (! $cible['contribuable']) {
             return view('recouvrements.create', [
-                'code'       => $code,
+                'code' => $code,
                 'erreurCode' => "Aucun contribuable ou établissement trouvé pour « {$code} ».",
             ]);
         }
 
         return view('recouvrements.encaisser', array_merge($cible, [
-            'code'     => $code,
-            'modes'    => $this->selectOptions->charger(ModeReglement::class, 'libelle'),
-            'types'    => $this->selectOptions->charger(TypeReglement::class, 'libelle'),
+            'code' => $code,
+            'modes' => $this->selectOptions->charger(ModeReglement::class, 'libelle'),
+            'types' => $this->selectOptions->charger(TypeReglement::class, 'libelle'),
             'recettes' => $this->selectOptions->charger(Recette::class, 'libelle'),
-            'banques'  => $this->selectOptions->charger(Banque::class, 'libelle'),
+            'banques' => $this->selectOptions->charger(Banque::class, 'libelle'),
         ]));
     }
 
@@ -117,25 +120,25 @@ class RecouvrementController extends Controller
         }
 
         $valide = $request->validate([
-            'code'              => ['nullable', 'string'],
-            'recette_id'        => ['required', 'integer', 'exists:recette,id'],
+            'code' => ['nullable', 'string'],
+            'recette_id' => ['required', 'integer', 'exists:recette,id'],
             'mode_reglement_id' => ['required', 'integer', 'exists:mode_reglement,id'],
             'type_reglement_id' => ['required', 'integer', 'exists:type_reglement,id'],
-            'numero_cheque'     => ['nullable', 'string', 'max:64'],
-            'banque_id'         => ['nullable', 'integer', 'exists:banque,id'],
-            'operateur_mobile'     => ['nullable', 'string', 'max:64'],
+            'numero_cheque' => ['nullable', 'string', 'max:64'],
+            'banque_id' => ['nullable', 'integer', 'exists:banque,id'],
+            'operateur_mobile' => ['nullable', 'string', 'max:64'],
             'reference_transaction' => ['nullable', 'string', 'max:64'],
-            'emissions'         => ['required', 'array', 'min:1'],
-            'emissions.*'       => ['integer', 'exists:emission_taxe,id'],
-            'montant'           => ['required', 'array'],
-            'montant.*'         => ['nullable', 'numeric', 'min:0'],
+            'emissions' => ['required', 'array', 'min:1'],
+            'emissions.*' => ['integer', 'exists:emission_taxe,id'],
+            'montant' => ['required', 'array'],
+            'montant.*' => ['nullable', 'numeric', 'min:0'],
         ], [
             'emissions.required' => 'Sélectionnez au moins une émission à régler.',
         ]);
 
         // Construit la liste (émission, montant) des lignes cochées avec un montant > 0,
         // en contrôlant que le montant ne dépasse pas le solde dû.
-        $lignes  = [];
+        $lignes = [];
         $erreurs = [];
 
         foreach ($valide['emissions'] as $emId) {
@@ -145,12 +148,12 @@ class RecouvrementController extends Controller
             }
 
             $emission = EmissionTaxe::find($emId);
-            $solde    = (float) $emission->soldeDu();
+            $solde = (float) $emission->soldeDu();
 
             if ($emission->exerciceFiscal?->cloture) {
                 $erreurs["montant.$emId"] = 'Exercice clôturé : règlement impossible.';
             } elseif ($montant > $solde) {
-                $erreurs["montant.$emId"] = 'Le montant dépasse le solde dû (' . number_format($solde, 0, ',', ' ') . ' FCFA).';
+                $erreurs["montant.$emId"] = 'Le montant dépasse le solde dû ('.number_format($solde, 0, ',', ' ').' FCFA).';
             } else {
                 $lignes[] = [$emission, $montant];
             }
@@ -181,41 +184,41 @@ class RecouvrementController extends Controller
             ->orderBy('numero_quittance', 'desc')
             ->value('numero_quittance');
         $seqQuittance = $seqQuittance ? ((int) substr($seqQuittance, -6) + 1) : 1;
-        $numeroQuittance = "QT{$annee}" . str_pad($seqQuittance, 6, '0', STR_PAD_LEFT);
+        $numeroQuittance = "QT{$annee}".str_pad($seqQuittance, 6, '0', STR_PAD_LEFT);
 
         DB::transaction(function () use ($lignes, &$seq, $valide, $request, $collectivite, $annee, $dateReglement, $numeroQuittance): void {
             foreach ($lignes as [$emission, $montant]) {
                 ReglementTaxe::create([
-                    'numero_reglement'   => "RG{$annee}" . str_pad($seq, 6, '0', STR_PAD_LEFT),
-                    'emission_taxe_id'   => $emission->id,
-                    'collectivite_id'    => $collectivite?->id,
-                    'recette_id'         => $valide['recette_id'],
+                    'numero_reglement' => "RG{$annee}".str_pad($seq, 6, '0', STR_PAD_LEFT),
+                    'emission_taxe_id' => $emission->id,
+                    'collectivite_id' => $collectivite?->id,
+                    'recette_id' => $valide['recette_id'],
                     'exercice_fiscal_id' => $emission->exercice_fiscal_id,
-                    'date_reglement'     => $dateReglement,
-                    'montant'            => $montant,
-                    'montant_impute'     => $montant,
-                    'mode_reglement_id'  => $valide['mode_reglement_id'],
-                    'type_reglement_id'  => $valide['type_reglement_id'],
-                    'numero_cheque'      => $request->input('numero_cheque'),
-                    'banque_id'          => $request->input('banque_id'),
-                    'operateur_mobile'      => $request->input('operateur_mobile'),
+                    'date_reglement' => $dateReglement,
+                    'montant' => $montant,
+                    'montant_impute' => $montant,
+                    'mode_reglement_id' => $valide['mode_reglement_id'],
+                    'type_reglement_id' => $valide['type_reglement_id'],
+                    'numero_cheque' => $request->input('numero_cheque'),
+                    'banque_id' => $request->input('banque_id'),
+                    'operateur_mobile' => $request->input('operateur_mobile'),
                     'reference_transaction' => $request->input('reference_transaction'),
-                    'numero_quittance'   => $numeroQuittance,
-                    'created_by'         => auth()->id(),
+                    'numero_quittance' => $numeroQuittance,
+                    'created_by' => auth()->id(),
                 ]);
                 $seq++;
             }
         });
 
         return redirect()->route('recouvrements.index')
-            ->with('success', count($lignes) . ' règlement(s) enregistré(s).');
+            ->with('success', count($lignes).' règlement(s) enregistré(s).');
     }
 
     /**
      * Résout un code en cible (établissement par `numero`, sinon contribuable par
      * `numero_identifiant`/`numero_compte`) et ses émissions au solde non nul.
      *
-     * @return array{contribuable: ?Contribuable, etablissement: ?Etablissement, emissions: \Illuminate\Support\Collection}
+     * @return array{contribuable: ?Contribuable, etablissement: ?Etablissement, emissions: Collection}
      */
     private function resoudreCible(string $code): array
     {
@@ -226,9 +229,9 @@ class RecouvrementController extends Controller
 
         if ($etablissement) {
             return [
-                'contribuable'  => $etablissement->contribuable,
+                'contribuable' => $etablissement->contribuable,
                 'etablissement' => $etablissement,
-                'emissions'     => $this->emissionsAvecSolde(
+                'emissions' => $this->emissionsAvecSolde(
                     EmissionTaxe::where('etablissement_id', $etablissement->id)
                 ),
             ];
@@ -242,9 +245,9 @@ class RecouvrementController extends Controller
             $etabIds = $contribuable->etablissements()->pluck('id');
 
             return [
-                'contribuable'  => $contribuable,
+                'contribuable' => $contribuable,
                 'etablissement' => null,
-                'emissions'     => $this->emissionsAvecSolde(
+                'emissions' => $this->emissionsAvecSolde(
                     EmissionTaxe::whereIn('etablissement_id', $etabIds)
                 ),
             ];
@@ -254,7 +257,7 @@ class RecouvrementController extends Controller
     }
 
     /** Émissions chargées avec leurs relations, restreintes à un solde dû > 0. */
-    private function emissionsAvecSolde(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Support\Collection
+    private function emissionsAvecSolde(Builder $query): Collection
     {
         return $query->with(['etablissement', 'natureTaxe', 'periodicite', 'exerciceFiscal'])
             ->orderBy('numero_emission')
@@ -278,7 +281,7 @@ class RecouvrementController extends Controller
 
         try {
             $historiques = $recouvrement->historique()->latest('created_at')->take(50)->get();
-        } catch (\Illuminate\Database\QueryException) {
+        } catch (QueryException) {
             $historiques = collect();
         }
 
@@ -308,11 +311,8 @@ class RecouvrementController extends Controller
         $collectivite = Collectivite::find($recouvrement->collectivite_id);
         $total = $reglements->reduce(fn ($c, $r) => bcadd($c, (string) $r->montant_impute, 2), '0');
 
-        $pdf = Pdf::loadView('recouvrements.quittance-pdf', compact(
-            'recouvrement', 'reglements', 'contribuable', 'collectivite', 'total'
-        ))->setPaper('a4');
-
-        return $pdf->download('quittance-' . ($recouvrement->numero_quittance ?? $recouvrement->numero_reglement) . '.pdf');
+        return (new Quittance($recouvrement, $reglements, $contribuable, $collectivite, $total))
+            ->reponse('quittance-'.($recouvrement->numero_quittance ?? $recouvrement->numero_reglement).'.pdf');
     }
 
     /**
@@ -332,13 +332,13 @@ class RecouvrementController extends Controller
         ]);
 
         $recouvrement->update([
-            'annule_le'        => now(),
+            'annule_le' => now(),
             'motif_annulation' => $valide['motif_annulation'],
-            'annule_par'       => auth()->id(),
+            'annule_par' => auth()->id(),
         ]);
 
         return redirect()->route('recouvrements.show', $recouvrement)
-            ->with('success', 'Règlement ' . $recouvrement->numero_reglement . ' annulé.');
+            ->with('success', 'Règlement '.$recouvrement->numero_reglement.' annulé.');
     }
 
     public function edit(ReglementTaxe $recouvrement): View
@@ -351,8 +351,8 @@ class RecouvrementController extends Controller
             'banque',
         ]);
 
-        $modes   = $this->selectOptions->charger(ModeReglement::class, 'libelle');
-        $types   = $this->selectOptions->charger(TypeReglement::class, 'libelle');
+        $modes = $this->selectOptions->charger(ModeReglement::class, 'libelle');
+        $types = $this->selectOptions->charger(TypeReglement::class, 'libelle');
         $banques = $this->selectOptions->charger(Banque::class, 'libelle');
 
         return view('recouvrements.edit', compact('recouvrement', 'modes', 'types', 'banques'));
@@ -361,15 +361,15 @@ class RecouvrementController extends Controller
     public function update(Request $request, ReglementTaxe $recouvrement): RedirectResponse
     {
         $donnees = $request->validate([
-            'date_reglement'    => ['required', 'date'],
-            'montant'           => ['required', 'numeric', 'min:0'],
-            'montant_impute'    => ['required', 'numeric', 'min:0'],
+            'date_reglement' => ['required', 'date'],
+            'montant' => ['required', 'numeric', 'min:0'],
+            'montant_impute' => ['required', 'numeric', 'min:0'],
             'mode_reglement_id' => ['required', 'integer', 'exists:mode_reglement,id'],
             'type_reglement_id' => ['required', 'integer', 'exists:type_reglement,id'],
-            'numero_cheque'     => ['nullable', 'string', 'max:64'],
-            'banque_id'         => ['nullable', 'integer', 'exists:banque,id'],
-            'numero_quittance'  => ['nullable', 'string', 'max:64'],
-            'mois_impute'       => ['nullable', 'integer', 'min:1', 'max:12'],
+            'numero_cheque' => ['nullable', 'string', 'max:64'],
+            'banque_id' => ['nullable', 'integer', 'exists:banque,id'],
+            'numero_quittance' => ['nullable', 'string', 'max:64'],
+            'mois_impute' => ['nullable', 'integer', 'min:1', 'max:12'],
         ]);
 
         $recouvrement->update($donnees);
@@ -397,7 +397,7 @@ class RecouvrementController extends Controller
         $filtre = RecouvrementFiltreForm::fromRequest($request);
 
         return $excel->telecharger('recouvrements', function (Writer $writer) use ($filtre): void {
-            $entete = (new Style())->setFontBold();
+            $entete = (new Style)->setFontBold();
             $writer->addRow(Row::fromValues([
                 'N° Règlement', 'Contribuable', 'N° Identifiant', 'N° Émission / Article',
                 'Type', 'Exercice', 'Date règlement', 'Mode', 'Type règlement',
@@ -415,7 +415,7 @@ class RecouvrementController extends Controller
 
                     $nomContrib = $contrib
                         ? ($contrib->type_personne === 'PP'
-                            ? trim(($contrib->nom ?? '') . ' ' . ($contrib->prenoms ?? ''))
+                            ? trim(($contrib->nom ?? '').' '.($contrib->prenoms ?? ''))
                             : ($contrib->raison_sociale ?? ''))
                         : '';
 

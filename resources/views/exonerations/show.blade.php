@@ -13,16 +13,11 @@
 
 <x-page-header titre="Exonération {{ $exoneration->numero }}" />
 
-@if (session('success'))
-    <div class="alert alert-success alert-dismissible py-2 fs-9" role="alert">
-        {{ session('success') }}
-        <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
-    </div>
-@endif
 
-<div class="card mb-3">
+<div class="card mb-3 card-section">
     <div class="card-header d-flex align-items-center justify-content-between py-3">
-        <h5 class="mb-0">
+        <h5 class="mb-0 d-flex align-items-center">
+            <span class="num-section">01</span>
             <span class="fas fa-percent me-2 text-primary"></span>{{ $exoneration->numero }}
             @if ($active)
                 <span class="badge bg-success ms-1">Active</span>
@@ -77,7 +72,8 @@
             </div>
         </div>
     </div>
-    <div class="card-footer text-end">
+    <div class="card-footer d-flex justify-content-between align-items-center">
+        <span class="fs-9 text-600"><span class="fas fa-clock me-1"></span>Mis à jour le {{ $exoneration->updated_at?->format('d/m/Y') ?? '—' }}</span>
         <form method="POST" action="{{ route('exonerations.destroy', $exoneration) }}"
               onsubmit="return confirm('Supprimer l\'exonération {{ $exoneration->numero }} ?')">
             @csrf @method('DELETE')
@@ -89,9 +85,10 @@
 </div>
 
 {{-- Taxes exonérées --}}
-<div class="card mb-3">
+<div class="card mb-3 card-section">
     <div class="card-header py-3">
-        <h5 class="mb-0">
+        <h5 class="mb-0 d-flex align-items-center">
+            <span class="num-section">02</span>
             <span class="fas fa-list-ul me-2 text-primary"></span>Taxes exonérées
             <span class="badge bg-secondary ms-2">{{ $exoneration->lignes->count() }}</span>
         </h5>
@@ -128,6 +125,9 @@
                 </table>
             </div>
         @endif
+    </div>
+    <div class="card-footer d-flex justify-content-end align-items-center py-2 fs-9 text-600">
+        <span class="fas fa-list-ul me-1"></span>{{ $exoneration->lignes->count() }} taxe(s) exonérée(s)
     </div>
 </div>
 

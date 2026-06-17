@@ -451,9 +451,10 @@
 {{-- =====================================================================
      DATATABLE ÉMISSIONS DE TAXE
      ===================================================================== --}}
-<div class="card mt-3">
+<div class="card mt-3 card-section">
     <div class="card-header d-flex align-items-center justify-content-between py-3">
-        <h5 class="mb-0">
+        <h5 class="mb-0 d-flex align-items-center">
+            <span class="num-section">01</span>
             <span class="fas fa-file-invoice-dollar me-2 text-primary"></span>
             Émissions de taxe
             <span class="badge bg-secondary ms-2">{{ $emissions->count() }}</span>
@@ -537,14 +538,21 @@
             </div>
         </div>
     @endif
+    <div class="card-footer d-flex justify-content-between align-items-center py-2 fs-9">
+        <span class="text-600">
+            <span class="fas fa-file-invoice-dollar me-1"></span>{{ $emissions->count() }} émission(s)
+        </span>
+        <span class="text-600">Total émis : <span class="fw-semi-bold">{{ $fcfa($totalEmis) }}</span></span>
+    </div>
 </div>
 
 {{-- =====================================================================
      DATATABLE EXONÉRATIONS
      ===================================================================== --}}
-<div class="card mt-3">
+<div class="card mt-3 card-section">
     <div class="card-header d-flex align-items-center justify-content-between py-3">
-        <h5 class="mb-0">
+        <h5 class="mb-0 d-flex align-items-center">
+            <span class="num-section">02</span>
             <span class="fas fa-shield-alt me-2 text-primary"></span>
             Exonérations fiscales
             <span class="badge bg-secondary ms-2">{{ $contribuable->exonerations->count() }}</span>
@@ -614,19 +622,25 @@
             </div>
         </div>
     @endif
+    <div class="card-footer d-flex justify-content-between align-items-center py-2 fs-9">
+        <span class="text-600">
+            <span class="fas fa-shield-alt me-1"></span>{{ $contribuable->exonerations->count() }} exonération(s)
+        </span>
+    </div>
 </div>
 
 {{-- =====================================================================
      PIÈCES JOINTES
      ===================================================================== --}}
-<x-documents.panneau :model="$contribuable" />
+<x-documents.panneau :model="$contribuable" numero="03" />
 
 {{-- =====================================================================
      OBLIGATIONS FISCALES (obligations actives du contribuable, lecture seule)
      ===================================================================== --}}
-<div class="card mt-3">
+<div class="card mt-3 card-section">
     <div class="card-header d-flex justify-content-between align-items-center py-3">
-        <h5 class="mb-0">
+        <h5 class="mb-0 d-flex align-items-center">
+            <span class="num-section">04</span>
             <span class="fas fa-clipboard-list me-2 text-primary"></span>Obligations fiscales
             <span class="badge bg-secondary ms-1">{{ $contribuable->obligations->count() }}</span>
         </h5>
@@ -665,6 +679,11 @@
                 </tbody>
             </table>
         </div>
+    </div>
+    <div class="card-footer d-flex justify-content-between align-items-center py-2 fs-9">
+        <span class="text-600">
+            <span class="fas fa-clipboard-list me-1"></span>{{ $contribuable->obligations->count() }} obligation(s) active(s)
+        </span>
     </div>
 </div>
 

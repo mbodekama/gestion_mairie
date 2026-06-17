@@ -82,12 +82,6 @@
     </div>
 </div>
 
-@if (session('success'))
-    <div class="alert alert-success alert-dismissible py-2 fs-9" role="alert">
-        {{ session('success') }}
-        <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
-    </div>
-@endif
 
 {{-- =====================================================================
      KPIs
@@ -156,9 +150,10 @@
      ===================================================================== --}}
 <div class="row g-3 mb-3">
     <div class="col-lg-8">
-        <div class="card h-100">
-            <div class="card-header py-3">
-                <ul class="nav nav-tabs card-header-tabs" id="tabEtab" role="tablist">
+        <div class="card h-100 card-section">
+            <div class="card-header py-3 d-flex align-items-center gap-2">
+                <span class="num-section">01</span>
+                <ul class="nav nav-tabs card-header-tabs flex-grow-1" id="tabEtab" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-infos"
                                 type="button" role="tab">
@@ -241,14 +236,18 @@
                     </dl>
                 </div>
             </div>
+            <div class="card-footer d-flex justify-content-end align-items-center py-2 fs-9 text-600">
+                <span class="fas fa-clock me-1"></span>Mis à jour le {{ $etablissement->updated_at?->format('d/m/Y') ?? '—' }}
+            </div>
         </div>
     </div>
 
     {{-- Sidebar --}}
     <div class="col-lg-4">
-        <div class="card h-100">
+        <div class="card h-100 card-section">
             <div class="card-header py-3">
-                <h5 class="mb-0">
+                <h5 class="mb-0 d-flex align-items-center">
+                    <span class="num-section">02</span>
                     <span class="fas fa-calendar-alt me-2 text-primary"></span>Cycle de vie
                 </h5>
             </div>
@@ -281,6 +280,9 @@
                     </div>
                 @endif
             </div>
+            <div class="card-footer d-flex justify-content-end align-items-center py-2 fs-9 text-600">
+                <span class="fas fa-circle-info me-1"></span>Statut : {{ $etablissement->statut }}
+            </div>
         </div>
     </div>
 </div>
@@ -288,9 +290,10 @@
 {{-- =====================================================================
      ÉMISSIONS DE TAXE
      ===================================================================== --}}
-<div class="card mb-3">
+<div class="card mb-3 card-section">
     <div class="card-header py-3 d-flex align-items-center justify-content-between">
-        <h5 class="mb-0">
+        <h5 class="mb-0 d-flex align-items-center">
+            <span class="num-section">03</span>
             <span class="fas fa-file-invoice-dollar me-2 text-primary"></span>
             Émissions de taxe
             <span class="badge bg-secondary ms-2">{{ $etablissement->emissionsTaxe->count() }}</span>
@@ -368,10 +371,13 @@
             </div>
         </div>
     @endif
+    <div class="card-footer d-flex justify-content-end align-items-center py-2 fs-9 text-600">
+        <span class="fas fa-file-invoice-dollar me-1"></span>{{ $etablissement->emissionsTaxe->count() }} émission(s)
+    </div>
 </div>
 
 {{-- Documents & Historique --}}
-<x-documents.panneau :model="$etablissement" />
+<x-documents.panneau :model="$etablissement" numero="04" />
 
 <x-historique.timeline
     :historiques="$historiques"

@@ -2,11 +2,6 @@
 
     <x-page-header titre="Gestion du Contrôle — Redressements" />
 
-    @if (session('success'))
-        <div class="alert alert-success alert-dismissible py-2 fs-9" role="alert">
-            {{ session('success') }}<button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
 
     {{-- ===== Filtres ===== --}}
     <x-filtre.card :action="route('redressements.filtre')" :reset="route('redressements.index')"
@@ -50,6 +45,7 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @php $totalRedressements = '0'; @endphp
                         @forelse ($redressements as $r)
                             @php
                                 $contrib = $r->controleFiscal?->etablissement?->contribuable;
@@ -59,6 +55,7 @@
                                         : ($contrib->raison_sociale ?? ''))
                                     : '—';
                                 $couleur = ['ouvert'=>'warning','notifie'=>'info','solde'=>'success','annule'=>'secondary'][$r->etat] ?? 'secondary';
+                                $totalRedressements = bcadd($totalRedressements, (string) $r->montant_total, 2);
                             @endphp
                             <tr>
                                 <td class="fw-semi-bold">{{ $r->numero }}</td>
@@ -84,6 +81,15 @@
                             </tr>
                         @endforelse
                     </tbody>
+                    @if ($redressements->count())
+                        <tfoot class="table-light fw-bold">
+                            <tr>
+                                <td colspan="2" class="text-end">Total de la page</td>
+                                <td class="text-end text-danger">{{ number_format((float) $totalRedressements, 0, ',', ' ') }} FCFA</td>
+                                <td colspan="3"></td>
+                            </tr>
+                        </tfoot>
+                    @endif
                 </table>
             </div>
         </div>

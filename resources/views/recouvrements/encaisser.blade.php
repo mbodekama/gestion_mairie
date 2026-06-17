@@ -9,12 +9,6 @@
 
 <x-page-header titre="Encaissement de règlements" sous-titre="Étape 2 — Émissions à régler" />
 
-@if (session('error'))
-    <div class="alert alert-danger alert-dismissible py-2 fs-9" role="alert">
-        {{ session('error') }}
-        <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
-    </div>
-@endif
 
 {{-- ===== Card Contribuable ===== --}}
 <div class="card mb-3">
@@ -85,7 +79,6 @@
                 <table class="table table-sm table-hover table-striped mb-0 fs-9 align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th class="text-center"><input type="checkbox" id="check-all" class="form-check-input"></th>
                             <th>N°</th>
                             <th>Établissement</th>
                             <th>Code émission</th>
@@ -93,6 +86,7 @@
                             <th>Période</th>
                             <th class="text-end">Restant à payer</th>
                             <th class="text-end" style="min-width:160px;">Montant à payer</th>
+                            <th class="text-center">Régler</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -102,10 +96,6 @@
                                 $coche = in_array($emission->id, old('emissions', []));
                             @endphp
                             <tr>
-                                <td class="text-center">
-                                    <input type="checkbox" name="emissions[]" value="{{ $emission->id }}"
-                                           class="form-check-input ligne-check" {{ $coche ? 'checked' : '' }}>
-                                </td>
                                 <td>{{ $i + 1 }}</td>
                                 <td>
                                     {{ $emission->etablissement?->numero ?? '—' }}
@@ -131,13 +121,18 @@
                                         <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
                                 </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="emissions[]" value="{{ $emission->id }}"
+                                           class="form-check-input ligne-check" {{ $coche ? 'checked' : '' }}>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
                     <tfoot class="table-light">
                         <tr>
-                            <th colspan="7" class="text-end">Total à encaisser (lignes cochées)</th>
+                            <th colspan="6" class="text-end">Total à encaisser (lignes cochées)</th>
                             <th class="text-end" id="total-encaisser">0 FCFA</th>
+                            <th></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -247,7 +242,6 @@
 @push('scripts')
 <script>
 (function () {
-    const checkAll = document.getElementById('check-all');
     const lignes   = Array.from(document.querySelectorAll('.ligne-check'));
     const totalEl  = document.getElementById('total-encaisser');
     const champs   = Array.from(document.querySelectorAll('.montant-payer'));
@@ -278,10 +272,6 @@
         totalEl.textContent = total.toLocaleString('fr-FR') + ' FCFA';
     }
 
-    checkAll?.addEventListener('change', () => {
-        lignes.forEach(c => { c.checked = checkAll.checked; });
-        rafraichirTotal();
-    });
     lignes.forEach(c => c.addEventListener('change', rafraichirTotal));
 
     // Formatage en milliers + plafonnement au solde pendant la saisie

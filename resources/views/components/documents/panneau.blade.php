@@ -10,7 +10,7 @@
     Usage edit  (liste + formulaire d'upload) :
         <x-documents.panneau :model="$contribuable" :editable="true" />
 --}}
-@props(['model', 'editable' => false])
+@props(['model', 'editable' => false, 'numero' => null])
 
 @php
     use App\Models\DocType;
@@ -31,11 +31,14 @@
     $modelId        = $model->getKey();
 @endphp
 
-<div class="card mt-3">
+<div class="card mt-3 @if ($numero) card-section @endif">
 
     {{-- ── En-tête ──────────────────────────────────────────────────── --}}
     <div class="card-header d-flex align-items-center justify-content-between py-3">
-        <h5 class="mb-0">
+        <h5 class="mb-0 d-flex align-items-center">
+            @if ($numero)
+                <span class="num-section">{{ $numero }}</span>
+            @endif
             <span class="fas fa-paperclip me-2 text-primary"></span>
             Pièces jointes
             <span class="badge bg-secondary ms-2">{{ $documents->count() }}</span>
@@ -121,12 +124,6 @@
                     Ajoutez des entrées dans <code>DocTypeSeeder</code> pour {{ class_basename($modelType) }}.
                 </p>
             @else
-                @if (session('success'))
-                    <div class="alert alert-success alert-dismissible py-2 fs-9" role="alert">
-                        {{ session('success') }}
-                        <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
-                    </div>
-                @endif
 
                 <form method="POST" action="{{ route('documents.store') }}"
                       enctype="multipart/form-data" class="row g-3 align-items-end">
@@ -169,6 +166,7 @@
                     <div class="col-md-4">
                         <label class="form-label fs-9 mb-1">
                             Fichier <span class="text-danger">*</span>
+                            <span class="text-muted fw-normal fs-10">— PDF, images, Word, Excel — 10 Mo max</span>
                         </label>
                         <input type="file" name="fichier"
                                class="form-control form-control-sm @error('fichier') is-invalid @enderror"
@@ -177,7 +175,6 @@
                         @error('fichier')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
-                        <div class="form-text fs-10">PDF, images, Word, Excel — 10 Mo max</div>
                     </div>
 
                     <div class="col-md-2">
@@ -187,6 +184,15 @@
                     </div>
                 </form>
             @endif
+        </div>
+    @endif
+
+    {{-- ── Pied de carte (mode section numérotée) ───────────────────── --}}
+    @if ($numero)
+        <div class="card-footer d-flex justify-content-between align-items-center py-2 fs-9">
+            <span class="text-600">
+                <span class="fas fa-paperclip me-1"></span>{{ $documents->count() }} document(s)
+            </span>
         </div>
     @endif
 

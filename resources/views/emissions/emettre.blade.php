@@ -12,12 +12,6 @@
 <x-page-header titre="Créer une émission de taxe"
                sous-titre="Étape 2 — Renseigner l'émission" />
 
-@if (session('error'))
-    <div class="alert alert-danger alert-dismissible py-2 fs-9" role="alert">
-        {{ session('error') }}
-        <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
-    </div>
-@endif
 
 {{-- ===== Card Établissement / contribuable ===== --}}
 <div class="card mb-3">

@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\FiltreDataForm\RedressementFiltreForm;
 use App\Http\Requests\RedressementEmissionRequest;
+use App\Models\Collectivite;
 use App\Models\ExerciceFiscal;
 use App\Models\NatureTaxe;
 use App\Models\Periodicite;
 use App\Models\Redressement;
+use App\Pdf\AvisRedressement;
 use App\Services\ControleWorkflowService;
 use App\Services\ExcelExportService;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +20,7 @@ use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class RedressementController extends Controller
 {
@@ -30,7 +32,7 @@ class RedressementController extends Controller
 
     public function index(Request $request)
     {
-        $sortActuel  = in_array($request->query('sort'), self::COLONNES_TRI, true)
+        $sortActuel = in_array($request->query('sort'), self::COLONNES_TRI, true)
                        ? $request->query('sort') : 'created_at';
         $dirActuelle = $request->query('dir') === 'asc' ? 'asc' : 'desc';
 
@@ -52,9 +54,9 @@ class RedressementController extends Controller
             'collectivite',
         ]);
 
-        $naturesTaxe  = NatureTaxe::orderBy('code')->get();
+        $naturesTaxe = NatureTaxe::orderBy('code')->get();
         $periodicites = Periodicite::orderBy('libelle')->get();
-        $exercices    = ExerciceFiscal::where('cloture', false)->orderBy('annee', 'desc')->get();
+        $exercices = ExerciceFiscal::where('cloture', false)->orderBy('annee', 'desc')->get();
 
         return view('redressements.show', compact(
             'redressement', 'naturesTaxe', 'periodicites', 'exercices'
@@ -74,7 +76,7 @@ class RedressementController extends Controller
         );
 
         return redirect()->route('redressements.show', $redressement)
-            ->with('success', $emissions->count() . ' émission(s) complémentaire(s) générée(s).');
+            ->with('success', $emissions->count().' émission(s) complémentaire(s) générée(s).');
     }
 
     /**
@@ -91,7 +93,7 @@ class RedressementController extends Controller
         $request->merge(['penalite' => $saisies]);
 
         $request->validate([
-            'penalite'   => ['array'],
+            'penalite' => ['array'],
             'penalite.*' => ['nullable', 'numeric', 'min:0'],
         ]);
 
@@ -99,15 +101,15 @@ class RedressementController extends Controller
             foreach ($redressement->emissionsTaxe as $emission) {
                 $nouvelle = (string) ($saisies[$emission->id] ?? '0');
                 // Droits = montant courant − ancienne pénalité ; montant = droits + nouvelle pénalité.
-                $droits  = bcsub((string) $emission->montant_annuel, (string) $emission->penalite, 2);
+                $droits = bcsub((string) $emission->montant_annuel, (string) $emission->penalite, 2);
                 $montant = bcadd($droits, $nouvelle, 2);
 
                 $emission->update([
-                    'penalite'        => $nouvelle,
-                    'montant_annuel'  => $montant,
+                    'penalite' => $nouvelle,
+                    'montant_annuel' => $montant,
                     'montant_periode' => $montant,
                     'montant_prorata' => $montant,
-                    'updated_by'      => auth()->id(),
+                    'updated_by' => auth()->id(),
                 ]);
             }
 
@@ -134,7 +136,7 @@ class RedressementController extends Controller
     /**
      * Avis de redressement (PDF) — notification des montants au contribuable.
      */
-    public function avis(Redressement $redressement): \Symfony\Component\HttpFoundation\Response
+    public function avis(Redressement $redressement): Response
     {
         $redressement->load([
             'controleFiscal.etablissement.contribuable',
@@ -142,15 +144,12 @@ class RedressementController extends Controller
             'emissionsTaxe.natureTaxe', 'emissionsTaxe.exerciceFiscal',
         ]);
 
-        $controle     = $redressement->controleFiscal;
+        $controle = $redressement->controleFiscal;
         $contribuable = $controle?->etablissement?->contribuable;
-        $collectivite = \App\Models\Collectivite::find($redressement->collectivite_id);
+        $collectivite = Collectivite::find($redressement->collectivite_id);
 
-        $pdf = Pdf::loadView('redressements.avis-pdf', compact(
-            'redressement', 'controle', 'contribuable', 'collectivite'
-        ))->setPaper('a4');
-
-        return $pdf->download('avis-redressement-' . $redressement->numero . '.pdf');
+        return (new AvisRedressement($redressement, $controle, $contribuable, $collectivite))
+            ->reponse('avis-redressement-'.$redressement->numero.'.pdf');
     }
 
     public function export(Request $request, ExcelExportService $excel): BinaryFileResponse
@@ -158,7 +157,7 @@ class RedressementController extends Controller
         $filtre = RedressementFiltreForm::fromRequest($request);
 
         return $excel->telecharger('redressements', function (Writer $writer) use ($filtre): void {
-            $entete = (new Style())->setFontBold();
+            $entete = (new Style)->setFontBold();
             $writer->addRow(Row::fromValues([
                 'N° Redressement', 'N° Contrôle', 'Établissement', 'Contribuable',
                 'Droits', 'Pénalités', 'Total', 'État', 'Date',
@@ -171,7 +170,7 @@ class RedressementController extends Controller
                     $contrib = $r->controleFiscal?->etablissement?->contribuable;
                     $nom = $contrib
                         ? ($contrib->type_personne === 'PP'
-                            ? trim(($contrib->nom ?? '') . ' ' . ($contrib->prenoms ?? ''))
+                            ? trim(($contrib->nom ?? '').' '.($contrib->prenoms ?? ''))
                             : ($contrib->raison_sociale ?? ''))
                         : '';
 

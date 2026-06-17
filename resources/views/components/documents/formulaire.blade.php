@@ -76,12 +76,6 @@
         @if ($typesDocuments->isEmpty())
             <p class="text-500 fs-9 mb-0">Aucun type de document configuré pour ce module.</p>
         @else
-            @if (session('success'))
-                <div class="alert alert-success alert-dismissible py-2 fs-9" role="alert">
-                    {{ session('success') }}
-                    <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
 
             <form method="POST" action="{{ route('documents.store') }}"
                   enctype="multipart/form-data" class="row g-3 align-items-end">
@@ -118,14 +112,16 @@
 
                 {{-- Fichier --}}
                 <div class="col-md-4">
-                    <label class="form-label fs-9 mb-1">Fichier <span class="text-danger">*</span></label>
+                    <label class="form-label fs-9 mb-1">
+                        Fichier <span class="text-danger">*</span>
+                        <span class="text-muted fw-normal fs-10">— PDF, images, Word, Excel — 10 Mo max</span>
+                    </label>
                     <input type="file" name="fichier"
                            class="form-control form-control-sm @error('fichier') is-invalid @enderror"
                            accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx,.odt,.ods" required>
                     @error('fichier')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
-                    <div class="form-text fs-10">PDF, images, Word, Excel — 10 Mo max</div>
                 </div>
 
                 {{-- Bouton --}}

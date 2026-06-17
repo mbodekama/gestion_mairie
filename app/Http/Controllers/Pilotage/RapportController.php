@@ -6,9 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Collectivite;
 use App\Models\EmissionTaxe;
 use App\Models\ExerciceFiscal;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Pdf\EtatExonerations;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\Response;
 
 class RapportController extends Controller
 {
@@ -23,7 +24,7 @@ class RapportController extends Controller
      * État de restitution des exonérations : montants exonérés par exercice et
      * nature de taxe, avec le détail des émissions concernées (PDF).
      */
-    public function exonerations(Request $request): \Symfony\Component\HttpFoundation\Response
+    public function exonerations(Request $request): Response
     {
         $request->validate([
             'exercice_fiscal_id' => ['nullable', 'integer', 'exists:exercice_fiscal,id'],
@@ -49,12 +50,9 @@ class RapportController extends Controller
 
         $collectivite = Collectivite::first();
 
-        $pdf = Pdf::loadView('pilotage.rapports.exonerations-pdf', compact(
-            'parExercice', 'totalGeneral', 'exercice', 'collectivite'
-        ))->setPaper('a4');
+        $suffixe = $exercice ? '-'.$exercice->annee : '';
 
-        $suffixe = $exercice ? '-' . $exercice->annee : '';
-
-        return $pdf->download('etat-restitution-exonerations' . $suffixe . '.pdf');
+        return (new EtatExonerations($parExercice, $totalGeneral, $exercice, $collectivite))
+            ->reponse('etat-restitution-exonerations'.$suffixe.'.pdf');
     }
 }

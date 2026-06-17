@@ -54,6 +54,7 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @php $totalMontantDu = '0'; @endphp
                         @forelse ($convocations as $convocation)
                             @php
                                 $contrib = $convocation->etablissement?->contribuable;
@@ -63,6 +64,7 @@
                                         : $contrib->raison_sociale)
                                     : null;
                                 $repondu = filled($convocation->date_reponse);
+                                $totalMontantDu = bcadd($totalMontantDu, (string) ($convocation->montant_du ?? 0), 2);
                             @endphp
                             <tr>
                                 <td class="text-center">
@@ -134,6 +136,15 @@
                             </tr>
                         @endforelse
                     </tbody>
+                    @if ($convocations->count())
+                        <tfoot class="table-light fw-bold">
+                            <tr>
+                                <td colspan="6" class="text-end">Total de la page</td>
+                                <td class="text-end text-danger">{{ number_format((float) $totalMontantDu, 0, ',', ' ') }} F</td>
+                                <td colspan="3"></td>
+                            </tr>
+                        </tfoot>
+                    @endif
                 </table>
             </div>
         </div>

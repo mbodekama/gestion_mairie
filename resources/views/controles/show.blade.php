@@ -25,6 +25,12 @@
 
     // Transitions disponibles indexées par code cible
     $trParCible = $transitions->keyBy(fn($t) => $t->etatCible->code);
+
+    // Compteur de sections numérotées (continu malgré les blocs conditionnels)
+    $numSection = 0;
+    $noSection  = function () use (&$numSection) {
+        return str_pad((string) (++$numSection), 2, '0', STR_PAD_LEFT);
+    };
 @endphp
 
 {{-- ===== Bandeau ===== --}}
@@ -80,16 +86,6 @@
     </div>
 </div>
 
-@if (session('success'))
-    <div class="alert alert-success alert-dismissible py-2 fs-9" role="alert">
-        {{ session('success') }}<button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
-    </div>
-@endif
-@if (session('error'))
-    <div class="alert alert-danger alert-dismissible py-2 fs-9" role="alert">
-        {{ session('error') }}<button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
-    </div>
-@endif
 
 {{-- ===== Stepper workflow ===== --}}
 <div class="card mb-3">
@@ -183,9 +179,9 @@
 <div class="row g-3 mb-3">
     {{-- Détails --}}
     <div class="col-lg-8">
-        <div class="card h-100">
+        <div class="card h-100 card-section">
             <div class="card-header py-3">
-                <h5 class="mb-0"><span class="fas fa-info-circle me-2 text-primary"></span>Détails du contrôle</h5>
+                <h5 class="mb-0 d-flex align-items-center"><span class="num-section">{{ $noSection() }}</span><span class="fas fa-info-circle me-2 text-primary"></span>Détails du contrôle</h5>
             </div>
             <div class="card-body fs-9">
                 <div class="row">
@@ -222,14 +218,17 @@
                     <p class="mb-0">{{ $controle->rapport_synthese }}</p>
                 @endif
             </div>
+            <div class="card-footer d-flex justify-content-end align-items-center py-2 fs-9 text-600">
+                <span class="fas fa-clock me-1"></span>Mis à jour le {{ $controle->updated_at?->format('d/m/Y') ?? '—' }}
+            </div>
         </div>
     </div>
 
     {{-- Liens --}}
     <div class="col-lg-4">
-        <div class="card h-100">
+        <div class="card h-100 card-section">
             <div class="card-header py-3">
-                <h5 class="mb-0"><span class="fas fa-link me-2 text-primary"></span>Pièces liées</h5>
+                <h5 class="mb-0 d-flex align-items-center"><span class="num-section">{{ $noSection() }}</span><span class="fas fa-link me-2 text-primary"></span>Pièces liées</h5>
             </div>
             <div class="card-body fs-9">
                 <dl class="row mb-0">
@@ -248,15 +247,18 @@
                     </dd>
                 </dl>
             </div>
+            <div class="card-footer d-flex justify-content-end align-items-center py-2 fs-9 text-600">
+                <span class="fas fa-clock me-1"></span>Mis à jour le {{ $controle->updated_at?->format('d/m/Y') ?? '—' }}
+            </div>
         </div>
     </div>
 </div>
 
 {{-- ===== Constats (rapport) ===== --}}
 @if ($controle->constats->isNotEmpty())
-<div class="card mb-3">
+<div class="card mb-3 card-section">
     <div class="card-header py-3">
-        <h5 class="mb-0"><span class="fas fa-clipboard-check me-2 text-primary"></span>Constats du rapport
+        <h5 class="mb-0 d-flex align-items-center"><span class="num-section">{{ $noSection() }}</span><span class="fas fa-clipboard-check me-2 text-primary"></span>Constats du rapport
             <span class="badge bg-secondary ms-2">{{ $controle->constats->count() }}</span>
         </h5>
     </div>
@@ -285,14 +287,17 @@
             </table>
         </div>
     </div>
+    <div class="card-footer d-flex justify-content-end align-items-center py-2 fs-9 text-600">
+        <span class="fas fa-clipboard-check me-1"></span>{{ $controle->constats->count() }} constat(s)
+    </div>
 </div>
 @endif
 
 {{-- ===== Historique du workflow ===== --}}
 @if ($controle->historiques->isNotEmpty())
-<div class="card mb-3">
+<div class="card mb-3 card-section">
     <div class="card-header py-3">
-        <h5 class="mb-0"><span class="fas fa-history me-2 text-primary"></span>Historique du workflow</h5>
+        <h5 class="mb-0 d-flex align-items-center"><span class="num-section">{{ $noSection() }}</span><span class="fas fa-history me-2 text-primary"></span>Historique du workflow</h5>
     </div>
     <div class="card-body p-0">
         <ul class="list-group list-group-flush fs-9">
@@ -309,11 +314,14 @@
             @endforeach
         </ul>
     </div>
+    <div class="card-footer d-flex justify-content-end align-items-center py-2 fs-9 text-600">
+        <span class="fas fa-history me-1"></span>{{ $controle->historiques->count() }} mouvement(s)
+    </div>
 </div>
 @endif
 
 {{-- ===== Documents ===== --}}
-<x-documents.panneau :model="$controle" />
+<x-documents.panneau :model="$controle" :numero="$noSection()" />
 
 {{-- ===== Modale Valider (convocation) ===== --}}
 @if ($trParCible->has('VALIDE'))

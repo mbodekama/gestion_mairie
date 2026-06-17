@@ -2,12 +2,6 @@
 
 <x-page-header titre="Modifier l'établissement" />
 
-@if (session('success'))
-    <div class="alert alert-success alert-dismissible py-2 fs-9" role="alert">
-        {{ session('success') }}
-        <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
-    </div>
-@endif
 
 <form method="POST" action="{{ route('etablissements.update', $etablissement) }}" novalidate>
     @csrf @method('PUT')

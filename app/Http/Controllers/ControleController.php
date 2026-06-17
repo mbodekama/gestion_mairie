@@ -16,10 +16,11 @@ use App\Models\ExerciceFiscal;
 use App\Models\NatureTaxe;
 use App\Models\SanctionFiscale;
 use App\Models\Service;
+use App\Pdf\Convocation as ConvocationPdf;
+use App\Pdf\PvCloture;
 use App\Services\ControleWorkflowService;
 use App\Services\ExcelExportService;
 use App\Services\SelectOptionsService;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,6 +30,7 @@ use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class ControleController extends Controller
 {
@@ -46,7 +48,7 @@ class ControleController extends Controller
     {
         $etats = EtatControle::orderBy('ordre')->get();
 
-        $sortActuel  = in_array($request->query('sort'), self::COLONNES_TRI, true)
+        $sortActuel = in_array($request->query('sort'), self::COLONNES_TRI, true)
                        ? $request->query('sort') : 'created_at';
         $dirActuelle = $request->query('dir') === 'asc' ? 'asc' : 'desc';
 
@@ -84,16 +86,16 @@ class ControleController extends Controller
             ->orderBy('numero', 'desc')->value('numero');
         $seq = $dernier ? ((int) substr($dernier, -6) + 1) : 1;
 
-        $donnees['numero']          = "CTRL{$annee}" . str_pad($seq, 6, '0', STR_PAD_LEFT);
+        $donnees['numero'] = "CTRL{$annee}".str_pad($seq, 6, '0', STR_PAD_LEFT);
         $donnees['etat_controle_id'] = $etatInitial->id;
-        $donnees['collectivite_id']  = Collectivite::value('id');
+        $donnees['collectivite_id'] = Collectivite::value('id');
         $donnees['date_instruction'] = now()->toDateString();
-        $donnees['created_by']       = auth()->id();
+        $donnees['created_by'] = auth()->id();
 
         $controle = ControleFiscal::create($donnees);
 
         return redirect()->route('controles.show', $controle)
-            ->with('success', 'Contrôle créé — N° ' . $controle->numero);
+            ->with('success', 'Contrôle créé — N° '.$controle->numero);
     }
 
     public function show(ControleFiscal $controle): View
@@ -108,7 +110,7 @@ class ControleController extends Controller
 
         // Référentiels pour les actions (convocation, clôture, redressement)
         $services = $this->selectOptions->charger(Service::class, 'libelle');
-        $agents   = $this->selectOptions->charger(Agent::class, 'nom');
+        $agents = $this->selectOptions->charger(Agent::class, 'nom');
 
         return view('controles.show', compact('controle', 'transitions', 'services', 'agents'));
     }
@@ -140,7 +142,7 @@ class ControleController extends Controller
     public function destroy(ControleFiscal $controle): RedirectResponse
     {
         abort_unless($controle->etatControle?->code === 'INSTRUCTION', 403,
-            "Seul un contrôle en instruction peut être supprimé.");
+            'Seul un contrôle en instruction peut être supprimé.');
 
         $controle->delete();
 
@@ -159,8 +161,8 @@ class ControleController extends Controller
         $controle->load(['etablissement.contribuable', 'constats']);
 
         $naturesTaxe = NatureTaxe::orderBy('code')->get();
-        $sanctions   = SanctionFiscale::orderBy('code')->get();
-        $exercices   = ExerciceFiscal::orderBy('annee', 'desc')->get();
+        $sanctions = SanctionFiscale::orderBy('code')->get();
+        $exercices = ExerciceFiscal::orderBy('annee', 'desc')->get();
 
         return view('controles.rapport', compact('controle', 'naturesTaxe', 'sanctions', 'exercices'));
     }
@@ -174,7 +176,7 @@ class ControleController extends Controller
         DB::transaction(function () use ($controle, $valide) {
             $controle->update([
                 'rapport_synthese' => $valide['rapport_synthese'] ?? null,
-                'updated_by'       => auth()->id(),
+                'updated_by' => auth()->id(),
             ]);
 
             // Remplace l'ensemble des constats
@@ -184,14 +186,14 @@ class ControleController extends Controller
                 $verifie = (string) ($c['montant_verifie'] ?? 0);
                 ControleConstat::create([
                     'controle_fiscal_id' => $controle->id,
-                    'nature_taxe_id'     => $c['nature_taxe_id'],
+                    'nature_taxe_id' => $c['nature_taxe_id'],
                     'exercice_fiscal_id' => $c['exercice_fiscal_id'] ?? null,
-                    'montant_declare'    => $declare,
-                    'montant_verifie'    => $verifie,
-                    'ecart'              => bcsub($verifie, $declare, 2),
-                    'sanction_fiscale_id'=> $c['sanction_fiscale_id'] ?? null,
-                    'observation'        => $c['observation'] ?? null,
-                    'created_by'         => auth()->id(),
+                    'montant_declare' => $declare,
+                    'montant_verifie' => $verifie,
+                    'ecart' => bcsub($verifie, $declare, 2),
+                    'sanction_fiscale_id' => $c['sanction_fiscale_id'] ?? null,
+                    'observation' => $c['observation'] ?? null,
+                    'created_by' => auth()->id(),
                 ]);
             }
         });
@@ -232,36 +234,33 @@ class ControleController extends Controller
         // Vers le redressement créé le cas échéant
         if ($controle->etatControle?->code === 'REDRESSE' && $controle->redressement) {
             return redirect()->route('redressements.show', $controle->redressement)
-                ->with('success', 'Redressement ouvert — N° ' . $controle->redressement->numero);
+                ->with('success', 'Redressement ouvert — N° '.$controle->redressement->numero);
         }
 
         return redirect()->route('controles.show', $controle)
-            ->with('success', 'Contrôle mis à jour : ' . $controle->etatControle?->libelle . '.');
+            ->with('success', 'Contrôle mis à jour : '.$controle->etatControle?->libelle.'.');
     }
 
     /**
      * Avis de convocation (PDF) — livrable de la validation du contrôle.
      */
-    public function convocationPdf(ControleFiscal $controle): \Symfony\Component\HttpFoundation\Response
+    public function convocationPdf(ControleFiscal $controle): Response
     {
         abort_unless($controle->convocation_id, 404, 'Aucune convocation rattachée à ce contrôle.');
 
         $controle->load(['convocation.service', 'convocation.agent', 'etablissement.contribuable']);
-        $convocation  = $controle->convocation;
+        $convocation = $controle->convocation;
         $contribuable = $controle->etablissement?->contribuable;
         $collectivite = Collectivite::find($controle->collectivite_id);
 
-        $pdf = Pdf::loadView('controles.convocation-pdf', compact(
-            'controle', 'convocation', 'contribuable', 'collectivite'
-        ))->setPaper('a4');
-
-        return $pdf->download('convocation-' . ($convocation->numero ?? $controle->numero) . '.pdf');
+        return (new ConvocationPdf($controle, $convocation, $contribuable, $collectivite))
+            ->reponse('convocation-'.($convocation->numero ?? $controle->numero).'.pdf');
     }
 
     /**
      * Procès-verbal de clôture (PDF) — contrôle clôturé sans dommage.
      */
-    public function pvCloture(ControleFiscal $controle): \Symfony\Component\HttpFoundation\Response
+    public function pvCloture(ControleFiscal $controle): Response
     {
         abort_unless($controle->etatControle?->code === 'CLOTURE', 403,
             'Le PV de clôture n\'est disponible que pour un contrôle clôturé.');
@@ -273,11 +272,8 @@ class ControleController extends Controller
         $contribuable = $controle->etablissement?->contribuable;
         $collectivite = Collectivite::find($controle->collectivite_id);
 
-        $pdf = Pdf::loadView('controles.pv-cloture-pdf', compact(
-            'controle', 'contribuable', 'collectivite'
-        ))->setPaper('a4');
-
-        return $pdf->download('pv-cloture-' . $controle->numero . '.pdf');
+        return (new PvCloture($controle, $contribuable, $collectivite))
+            ->reponse('pv-cloture-'.$controle->numero.'.pdf');
     }
 
     public function export(Request $request, ExcelExportService $excel): BinaryFileResponse
@@ -285,7 +281,7 @@ class ControleController extends Controller
         $filtre = ControleFiltreForm::fromRequest($request);
 
         return $excel->telecharger('controles_fiscaux', function (Writer $writer) use ($filtre): void {
-            $entete = (new Style())->setFontBold();
+            $entete = (new Style)->setFontBold();
             $writer->addRow(Row::fromValues([
                 'N° Contrôle', 'Établissement', 'Contribuable', 'N° Identifiant',
                 'État', 'Période début', 'Période fin', 'Date instruction', 'Date clôture',
@@ -298,7 +294,7 @@ class ControleController extends Controller
                     $contrib = $c->etablissement?->contribuable;
                     $nom = $contrib
                         ? ($contrib->type_personne === 'PP'
-                            ? trim(($contrib->nom ?? '') . ' ' . ($contrib->prenoms ?? ''))
+                            ? trim(($contrib->nom ?? '').' '.($contrib->prenoms ?? ''))
                             : ($contrib->raison_sociale ?? ''))
                         : '';
 

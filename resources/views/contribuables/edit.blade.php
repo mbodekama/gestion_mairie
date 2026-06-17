@@ -4,12 +4,6 @@
 
 <x-page-header titre="Modifier le contribuable" />
 
-@if (session('success'))
-    <div class="alert alert-success alert-dismissible py-2 mb-3" role="alert">
-        {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-@endif
 
 <form method="POST" action="{{ route('contribuables.update', $contribuable) }}" novalidate>
     @csrf @method('PUT')

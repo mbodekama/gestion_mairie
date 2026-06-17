@@ -26,6 +26,7 @@
     <link href="{{ asset('assets/css/theme.css') }}" rel="stylesheet" id="style-default">
     <link href="{{ asset('assets/css/user-rtl.css') }}" rel="stylesheet" id="user-style-rtl">
     <link href="{{ asset('assets/css/user.css') }}" rel="stylesheet" id="user-style-default">
+    <link href="{{ asset('vendors/sweetalert2/sweetalert2.min.css') }}" rel="stylesheet">
     <script>
         var isRTL = JSON.parse(localStorage.getItem('isRTL'));
         if (isRTL) {
@@ -636,6 +637,8 @@
                     </div>
                 @endisset
 
+                <x-flash />
+
                 {{ $slot }}
 
                 <footer class="footer border-top mt-4 pt-2 pb-3">
@@ -688,7 +691,9 @@
     <script src="{{ asset('vendors/fontawesome/all.min.js') }}"></script>
     <script src="{{ asset('vendors/lodash/lodash.min.js') }}"></script>
     <script src="{{ asset('vendors/list.js/list.min.js') }}"></script>
+    <script src="{{ asset('vendors/sweetalert2/sweetalert2.min.js') }}"></script>
     <script src="{{ asset('assets/js/theme.js') }}"></script>
+    <script src="{{ asset('assets/js/confirmation-suppression.js') }}"></script>
 
     @stack('scripts')
 

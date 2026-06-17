@@ -7,9 +7,10 @@
 
 <x-page-header titre="Barème de taxe" />
 
-<div class="card mb-3">
+<div class="card mb-3 card-section">
     <div class="card-header d-flex align-items-center justify-content-between py-3">
-        <h5 class="mb-0">
+        <h5 class="mb-0 d-flex align-items-center">
+            <span class="num-section">01</span>
             <span class="fas fa-percent me-2 text-primary"></span>
             {{ $baremeTaxe->natureTaxe?->libelle_court ?? $baremeTaxe->natureTaxe?->libelle ?? 'Barème' }}
             <span class="badge bg-secondary ms-2">{{ $baremeTaxe->categorieActivite?->libelle ?? 'Toutes catégories' }}</span>
@@ -54,7 +55,8 @@
             </div>
         </div>
     </div>
-    <div class="card-footer text-end">
+    <div class="card-footer d-flex justify-content-between align-items-center">
+        <span class="fs-9 text-600"><span class="fas fa-clock me-1"></span>Mis à jour le {{ $baremeTaxe->updated_at?->format('d/m/Y') ?? '—' }}</span>
         <form method="POST" action="{{ route('parametrage.baremes-taxe.destroy', $baremeTaxe) }}"
               onsubmit="return confirm('Confirmer la suppression de ce barème ?')">
             @csrf

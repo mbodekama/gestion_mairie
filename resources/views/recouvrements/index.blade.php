@@ -62,6 +62,7 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @php $totalMontant = '0'; $totalImpute = '0'; @endphp
                         @forelse ($reglements as $reglement)
                             @php
                                 $contribuable = $reglement->emissionTaxe?->etablissement?->contribuable
@@ -72,6 +73,9 @@
                                     ?? '—';
 
                                 $typeEmission = $reglement->emission_taxe_id ? 'Taxe' : 'Foncier';
+
+                                $totalMontant = bcadd($totalMontant, (string) $reglement->montant, 2);
+                                $totalImpute  = bcadd($totalImpute, (string) $reglement->montant_impute, 2);
                             @endphp
                             <tr>
                                 <td class="text-center">
@@ -127,6 +131,16 @@
                             </tr>
                         @endforelse
                     </tbody>
+                    @if ($reglements->count())
+                        <tfoot class="table-light fw-bold">
+                            <tr>
+                                <td colspan="8" class="text-end">Total de la page</td>
+                                <td class="text-end">{{ number_format((float) $totalMontant, 0, ',', ' ') }} F</td>
+                                <td class="text-end">{{ number_format((float) $totalImpute, 0, ',', ' ') }} F</td>
+                                <td colspan="2"></td>
+                            </tr>
+                        </tfoot>
+                    @endif
                 </table>
             </div>
         </div>

@@ -46,11 +46,14 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @php $totalObjectif = '0'; $totalRevise = '0'; @endphp
                         @forelse ($objectifs as $objectif)
                             @php
                                 $tauxRevision = ($objectif->montant_revise && $objectif->montant > 0)
                                     ? round((($objectif->montant_revise - $objectif->montant) / $objectif->montant) * 100, 1)
                                     : null;
+                                $totalObjectif = bcadd($totalObjectif, (string) $objectif->montant, 2);
+                                $totalRevise   = bcadd($totalRevise, (string) ($objectif->montant_revise ?? 0), 2);
                             @endphp
                             <tr>
                                 <td class="text-center">
@@ -112,6 +115,16 @@
                             </tr>
                         @endforelse
                     </tbody>
+                    @if ($objectifs->count())
+                        <tfoot class="table-light fw-bold">
+                            <tr>
+                                <td colspan="3" class="text-end">Total de la page</td>
+                                <td class="text-end">{{ number_format((float) $totalObjectif, 0, ',', ' ') }}</td>
+                                <td class="text-end">{{ number_format((float) $totalRevise, 0, ',', ' ') }}</td>
+                                <td colspan="2"></td>
+                            </tr>
+                        </tfoot>
+                    @endif
                 </table>
             </div>
         </div>

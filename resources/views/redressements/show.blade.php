@@ -44,19 +44,14 @@
     </div>
 </div>
 
-@if (session('success'))
-    <div class="alert alert-success alert-dismissible py-2 fs-9" role="alert">
-        {{ session('success') }}<button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
-    </div>
-@endif
 @if ($errors->any())
     <div class="alert alert-danger fs-9"><ul class="mb-0">@foreach ($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul></div>
 @endif
 
 <div class="row g-3 mb-3">
     <div class="col-lg-8">
-        <div class="card h-100">
-            <div class="card-header py-3"><h5 class="mb-0"><span class="fas fa-info-circle me-2 text-primary"></span>Détails</h5></div>
+        <div class="card h-100 card-section">
+            <div class="card-header py-3"><h5 class="mb-0 d-flex align-items-center"><span class="num-section">01</span><span class="fas fa-info-circle me-2 text-primary"></span>Détails</h5></div>
             <div class="card-body fs-9">
                 <dl class="row mb-0">
                     <dt class="col-3 text-600">Contribuable</dt>
@@ -71,11 +66,14 @@
                     <dd class="col-9">{{ $redressement->observation ?? '—' }}</dd>
                 </dl>
             </div>
+            <div class="card-footer d-flex justify-content-end align-items-center py-2 fs-9 text-600">
+                <span class="fas fa-clock me-1"></span>Mis à jour le {{ $redressement->updated_at?->format('d/m/Y') ?? '—' }}
+            </div>
         </div>
     </div>
     <div class="col-lg-4">
-        <div class="card h-100">
-            <div class="card-header py-3"><h5 class="mb-0"><span class="fas fa-coins me-2 text-primary"></span>Montants</h5></div>
+        <div class="card h-100 card-section">
+            <div class="card-header py-3"><h5 class="mb-0 d-flex align-items-center"><span class="num-section">02</span><span class="fas fa-coins me-2 text-primary"></span>Montants</h5></div>
             <div class="card-body fs-9">
                 <dl class="row mb-3">
                     <dt class="col-7 text-600">Droits</dt><dd class="col-5 text-end">{{ $fcfa($redressement->montant_droits) }}</dd>
@@ -97,14 +95,18 @@
                     </form>
                 @endcan
             </div>
+            <div class="card-footer d-flex justify-content-between align-items-center py-2 fs-9 text-600">
+                <span><span class="fas fa-flag me-1"></span>État : {{ ucfirst($redressement->etat) }}</span>
+                <span><span class="fas fa-clock me-1"></span>Mis à jour le {{ $redressement->updated_at?->format('d/m/Y') ?? '—' }}</span>
+            </div>
         </div>
     </div>
 </div>
 
 {{-- ===== Émissions complémentaires existantes ===== --}}
-<div class="card mb-3">
+<div class="card mb-3 card-section">
     <div class="card-header py-3">
-        <h5 class="mb-0"><span class="fas fa-file-invoice-dollar me-2 text-primary"></span>Déclarations complémentaires
+        <h5 class="mb-0 d-flex align-items-center"><span class="num-section">03</span><span class="fas fa-file-invoice-dollar me-2 text-primary"></span>Déclarations complémentaires
             <span class="badge bg-secondary ms-2">{{ $redressement->emissionsTaxe->count() }}</span>
         </h5>
         <small class="text-muted fs-10">Émissions générées automatiquement depuis les constats du contrôle, recouvrables comme toute émission.</small>
@@ -159,6 +161,9 @@
                 @endif
             </form>
         @endif
+    </div>
+    <div class="card-footer d-flex justify-content-end align-items-center py-2 fs-9 text-600">
+        <span class="fas fa-file-invoice-dollar me-1"></span>{{ $redressement->emissionsTaxe->count() }} déclaration(s) complémentaire(s)
     </div>
 </div>
 

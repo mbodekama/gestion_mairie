@@ -136,6 +136,7 @@
                             </tr>
                         @endforelse
                     </tbody>
+                    <tfoot></tfoot>
                 </table>
             </div>
         </div>

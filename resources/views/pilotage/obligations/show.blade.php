@@ -11,9 +11,10 @@
 
 <x-page-header titre="Obligation fiscale" />
 
-<div class="card mb-3">
+<div class="card mb-3 card-section">
     <div class="card-header d-flex align-items-center justify-content-between py-3">
-        <h5 class="mb-0">
+        <h5 class="mb-0 d-flex align-items-center">
+            <span class="num-section">01</span>
             <span class="fas fa-tasks me-2 text-primary"></span>{{ $nomContrib }}
         </h5>
         <div class="d-flex gap-2">
@@ -53,7 +54,8 @@
             </div>
         </div>
     </div>
-    <div class="card-footer text-end">
+    <div class="card-footer d-flex justify-content-between align-items-center">
+        <span class="fs-9 text-600"><span class="fas fa-clock me-1"></span>Créée le {{ $obligation->created_at?->format('d/m/Y') ?? '—' }}</span>
         <form method="POST" action="{{ route('pilotage.obligations.destroy', $obligation) }}"
               onsubmit="return confirm('Supprimer cette obligation fiscale ?')">
             @csrf @method('DELETE')

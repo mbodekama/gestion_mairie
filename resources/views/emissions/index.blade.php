@@ -60,6 +60,7 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @php $totalMontantDu = '0'; $totalSoldeDu = '0'; @endphp
                         @forelse ($emissions as $emission)
                             @php
                                 $montantDu  = $emission->montant_prorata > 0
@@ -67,6 +68,8 @@
                                     : $emission->montant_annuel;
                                 $soldeDu    = $emission->soldeDu();
                                 $soldeSolde = bccomp($soldeDu, '0', 2) <= 0;
+                                $totalMontantDu = bcadd($totalMontantDu, (string) $montantDu, 2);
+                                $totalSoldeDu   = bcadd($totalSoldeDu, (string) $soldeDu, 2);
                             @endphp
                             <tr>
                                 <td class="text-center">
@@ -125,6 +128,16 @@
                             </tr>
                         @endforelse
                     </tbody>
+                    @if ($emissions->count())
+                        <tfoot class="table-light fw-bold">
+                            <tr>
+                                <td colspan="7" class="text-end">Total de la page</td>
+                                <td class="text-end">{{ number_format((float) $totalMontantDu, 0, ',', ' ') }} F</td>
+                                <td class="text-end">{{ number_format((float) $totalSoldeDu, 0, ',', ' ') }} F</td>
+                                <td colspan="2"></td>
+                            </tr>
+                        </tfoot>
+                    @endif
                 </table>
             </div>
         </div>

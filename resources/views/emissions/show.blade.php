@@ -81,18 +81,6 @@
     </div>
 </div>
 
-@if (session('success'))
-    <div class="alert alert-success alert-dismissible py-2 fs-9" role="alert">
-        {{ session('success') }}
-        <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
-    </div>
-@endif
-@if (session('error'))
-    <div class="alert alert-danger alert-dismissible py-2 fs-9" role="alert">
-        {{ session('error') }}
-        <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
-    </div>
-@endif
 
 {{-- =====================================================================
      KPIs
@@ -161,9 +149,10 @@
      ===================================================================== --}}
 <div class="row g-3 mb-3">
     <div class="col-lg-8">
-        <div class="card h-100">
+        <div class="card h-100 card-section">
             <div class="card-header py-3">
-                <h5 class="mb-0">
+                <h5 class="mb-0 d-flex align-items-center">
+                    <span class="num-section">01</span>
                     <span class="fas fa-info-circle me-2 text-primary"></span>Détails de l'émission
                 </h5>
             </div>
@@ -239,6 +228,9 @@
                     <dd class="col-7">{{ $emission->date_liquidation?->format('d/m/Y') ?? '—' }}</dd>
                 </dl>
             </div>
+            <div class="card-footer d-flex justify-content-end align-items-center py-2 fs-9 text-600">
+                <span class="fas fa-clock me-1"></span>Mis à jour le {{ $emission->updated_at?->format('d/m/Y') ?? '—' }}
+            </div>
         </div>
     </div>
 
@@ -280,9 +272,10 @@
 {{-- =====================================================================
      RÈGLEMENTS
      ===================================================================== --}}
-<div class="card mb-3">
+<div class="card mb-3 card-section">
     <div class="card-header py-3 d-flex align-items-center justify-content-between">
-        <h5 class="mb-0">
+        <h5 class="mb-0 d-flex align-items-center">
+            <span class="num-section">02</span>
             <span class="fas fa-hand-holding-usd me-2 text-primary"></span>
             Règlements
             <span class="badge bg-secondary ms-2">{{ $emission->reglements->count() }}</span>
@@ -360,9 +353,12 @@
             </div>
         </div>
     @endif
+    <div class="card-footer d-flex justify-content-end align-items-center py-2 fs-9 text-600">
+        <span class="fas fa-hand-holding-usd me-1"></span>{{ $emission->reglements->count() }} règlement(s)
+    </div>
 </div>
 
 {{-- Documents --}}
-<x-documents.panneau :model="$emission" />
+<x-documents.panneau :model="$emission" numero="03" />
 
 </x-app-layout>

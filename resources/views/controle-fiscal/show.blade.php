@@ -71,19 +71,14 @@
     </div>
 </div>
 
-@if (session('success'))
-    <div class="alert alert-success alert-dismissible py-2 fs-9" role="alert">
-        {{ session('success') }}
-        <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
-    </div>
-@endif
 
 <div class="row g-3 mb-3">
     {{-- Détails principaux --}}
     <div class="col-lg-8">
-        <div class="card h-100">
+        <div class="card h-100 card-section">
             <div class="card-header py-3">
-                <h5 class="mb-0">
+                <h5 class="mb-0 d-flex align-items-center">
+                    <span class="num-section">01</span>
                     <span class="fas fa-info-circle me-2 text-primary"></span>Détails du contrôle
                 </h5>
             </div>
@@ -157,14 +152,18 @@
                     </div>
                 </div>
             </div>
+            <div class="card-footer d-flex justify-content-end align-items-center py-2 fs-9 text-600">
+                <span class="fas fa-clock me-1"></span>Mis à jour le {{ $controleFiscal->updated_at?->format('d/m/Y') ?? '—' }}
+            </div>
         </div>
     </div>
 
     {{-- Période et montants --}}
     <div class="col-lg-4">
-        <div class="card h-100">
+        <div class="card h-100 card-section">
             <div class="card-header py-3">
-                <h5 class="mb-0">
+                <h5 class="mb-0 d-flex align-items-center">
+                    <span class="num-section">02</span>
                     <span class="fas fa-coins me-2 text-primary"></span>Rappel fiscal
                 </h5>
             </div>
@@ -205,11 +204,14 @@
                     </div>
                 </div>
             </div>
+            <div class="card-footer d-flex justify-content-end align-items-center py-2 fs-9 text-600">
+                <span class="fas fa-clock me-1"></span>Mis à jour le {{ $controleFiscal->updated_at?->format('d/m/Y') ?? '—' }}
+            </div>
         </div>
     </div>
 </div>
 
 {{-- Documents --}}
-<x-documents.panneau :model="$controleFiscal" />
+<x-documents.panneau :model="$controleFiscal" numero="03" />
 
 </x-app-layout>

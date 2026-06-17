@@ -10,11 +10,12 @@ use App\Models\ExerciceFiscal;
 use App\Models\NatureTaxe;
 use App\Models\Obligation;
 use App\Models\Periodicite;
+use App\Pdf\AvisImposition;
 use App\Services\ExcelExportService;
 use App\Services\ExonerationService;
 use App\Services\LiquidationTaxeService;
 use App\Services\SelectOptionsService;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -22,6 +23,7 @@ use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class EmissionTaxeController extends Controller
 {
@@ -34,11 +36,11 @@ class EmissionTaxeController extends Controller
 
     public function index(Request $request)
     {
-        $exercices    = $this->selectOptions->charger(ExerciceFiscal::class, 'annee');
-        $naturesTaxe  = $this->selectOptions->charger(NatureTaxe::class, 'libelle_court');
+        $exercices = $this->selectOptions->charger(ExerciceFiscal::class, 'annee');
+        $naturesTaxe = $this->selectOptions->charger(NatureTaxe::class, 'libelle_court');
         $periodicites = $this->selectOptions->charger(Periodicite::class, 'libelle');
 
-        $sortActuel  = in_array($request->query('sort'), self::COLONNES_TRI, true)
+        $sortActuel = in_array($request->query('sort'), self::COLONNES_TRI, true)
                        ? $request->query('sort') : 'updated_at';
         $dirActuelle = $request->query('dir') === 'asc' ? 'asc' : 'desc';
 
@@ -92,8 +94,8 @@ class EmissionTaxeController extends Controller
 
         if (! $etablissement) {
             return view('emissions.create', [
-                'code'             => $code,
-                'erreurCode'       => "Aucun établissement trouvé pour « {$code} ».",
+                'code' => $code,
+                'erreurCode' => "Aucun établissement trouvé pour « {$code} ».",
                 'exerciceFiscalId' => $request->query('exercice_fiscal_id'),
             ]);
         }
@@ -107,7 +109,7 @@ class EmissionTaxeController extends Controller
             ? ExerciceFiscal::find($request->query('exercice_fiscal_id'))
             : null;
 
-        $exercices    = ExerciceFiscal::where('cloture', false)->orderBy('annee', 'desc')->get();
+        $exercices = ExerciceFiscal::where('cloture', false)->orderBy('annee', 'desc')->get();
         $periodicites = $this->selectOptions->charger(Periodicite::class, 'libelle');
 
         return view('emissions.emettre', compact(
@@ -119,14 +121,14 @@ class EmissionTaxeController extends Controller
      * Calcule les montants d'une émission depuis le barème applicable (JSON).
      * Alimente le bouton « Calculer » du formulaire de création.
      */
-    public function liquider(Request $request, LiquidationTaxeService $liquidation): \Illuminate\Http\JsonResponse
+    public function liquider(Request $request, LiquidationTaxeService $liquidation): JsonResponse
     {
         $valide = $request->validate([
             'etablissement_id' => ['nullable', 'integer', 'exists:etablissement,id'],
-            'nature_taxe_id'   => ['required', 'integer', 'exists:nature_taxe,id'],
-            'periodicite_id'   => ['required', 'integer', 'exists:periodicite,id'],
-            'ca_annuel'        => ['nullable', 'numeric', 'min:0'],
-            'nb_mois_prorata'  => ['nullable', 'integer', 'min:1', 'max:12'],
+            'nature_taxe_id' => ['required', 'integer', 'exists:nature_taxe,id'],
+            'periodicite_id' => ['required', 'integer', 'exists:periodicite,id'],
+            'ca_annuel' => ['nullable', 'numeric', 'min:0'],
+            'nb_mois_prorata' => ['nullable', 'integer', 'min:1', 'max:12'],
         ]);
 
         // Catégorie d'activité de l'établissement (pour cibler le barème spécifique)
@@ -135,11 +137,11 @@ class EmissionTaxeController extends Controller
             : Etablissement::with('activite')->find($valide['etablissement_id'])?->activite?->categorie_activite_id;
 
         $resultat = $liquidation->liquider(
-            natureTaxeId:        (int) $valide['nature_taxe_id'],
-            periodiciteId:       (int) $valide['periodicite_id'],
-            caAnnuel:            (string) ($valide['ca_annuel'] ?? '0'),
+            natureTaxeId: (int) $valide['nature_taxe_id'],
+            periodiciteId: (int) $valide['periodicite_id'],
+            caAnnuel: (string) ($valide['ca_annuel'] ?? '0'),
             categorieActiviteId: $categorieId,
-            nbMoisProrata:       $valide['nb_mois_prorata'] ?? null,
+            nbMoisProrata: $valide['nb_mois_prorata'] ?? null,
         );
 
         return response()->json($resultat);
@@ -148,17 +150,17 @@ class EmissionTaxeController extends Controller
     public function store(Request $request, ExonerationService $exonerations): RedirectResponse
     {
         $donnees = $request->validate([
-            'etablissement_id'   => ['required', 'integer', 'exists:etablissement,id'],
-            'nature_taxe_id'     => ['required', 'integer', 'exists:nature_taxe,id'],
-            'periodicite_id'     => ['required', 'integer', 'exists:periodicite,id'],
+            'etablissement_id' => ['required', 'integer', 'exists:etablissement,id'],
+            'nature_taxe_id' => ['required', 'integer', 'exists:nature_taxe,id'],
+            'periodicite_id' => ['required', 'integer', 'exists:periodicite,id'],
             'exercice_fiscal_id' => ['required', 'integer', 'exists:exercice_fiscal,id'],
-            'ca_annuel'          => ['nullable', 'numeric', 'min:0'],
-            'montant_annuel'     => ['required', 'numeric', 'min:0'],
-            'montant_periode'    => ['nullable', 'numeric', 'min:0'],
-            'nb_mois_prorata'    => ['nullable', 'integer', 'min:1', 'max:12'],
-            'montant_prorata'    => ['nullable', 'numeric', 'min:0'],
-            'date_declaration'   => ['nullable', 'date'],
-            'date_liquidation'   => ['nullable', 'date'],
+            'ca_annuel' => ['nullable', 'numeric', 'min:0'],
+            'montant_annuel' => ['required', 'numeric', 'min:0'],
+            'montant_periode' => ['nullable', 'numeric', 'min:0'],
+            'nb_mois_prorata' => ['nullable', 'integer', 'min:1', 'max:12'],
+            'montant_prorata' => ['nullable', 'numeric', 'min:0'],
+            'date_declaration' => ['nullable', 'date'],
+            'date_liquidation' => ['nullable', 'date'],
         ]);
 
         $exercice = ExerciceFiscal::findOrFail($donnees['exercice_fiscal_id']);
@@ -180,7 +182,7 @@ class EmissionTaxeController extends Controller
         }
 
         $collectivite = Collectivite::first();
-        $annee        = $exercice->annee;
+        $annee = $exercice->annee;
 
         // Exonération éventuelle : abattement automatique au taux de la ligne active.
         $baseDue = (float) ($donnees['montant_prorata'] ?? 0) > 0
@@ -196,9 +198,9 @@ class EmissionTaxeController extends Controller
                     $donnees[$champ] = bcmul((string) $donnees[$champ], $exo['facteur'], 2);
                 }
             }
-            $donnees['exoneration_id']  = $exo['exoneration_id'];
+            $donnees['exoneration_id'] = $exo['exoneration_id'];
             $donnees['montant_exonere'] = $exo['montant_exonere'];
-            $messageExo = ' Exonération appliquée (' . rtrim(rtrim($exo['taux'], '0'), '.') . ' %).';
+            $messageExo = ' Exonération appliquée ('.rtrim(rtrim($exo['taux'], '0'), '.').' %).';
         }
 
         $seq = EmissionTaxe::where('numero_emission', 'like', "EMI{$annee}%")
@@ -207,16 +209,16 @@ class EmissionTaxeController extends Controller
         $seq = $seq ? ((int) substr($seq, -6) + 1) : 1;
 
         // Numéros métier générés : émission, fiche (même séquence annuelle) et article
-        $donnees['numero_emission'] = "EMI{$annee}" . str_pad($seq, 6, '0', STR_PAD_LEFT);
-        $donnees['numero_fiche']    = "FE{$annee}" . str_pad($seq, 6, '0', STR_PAD_LEFT);
-        $donnees['numero_article']  = $etab->numero . '/' . $annee;
+        $donnees['numero_emission'] = "EMI{$annee}".str_pad($seq, 6, '0', STR_PAD_LEFT);
+        $donnees['numero_fiche'] = "FE{$annee}".str_pad($seq, 6, '0', STR_PAD_LEFT);
+        $donnees['numero_article'] = $etab->numero.'/'.$annee;
         $donnees['collectivite_id'] = $collectivite?->id;
-        $donnees['created_by']      = auth()->id();
+        $donnees['created_by'] = auth()->id();
 
         $emission = EmissionTaxe::create($donnees);
 
         return redirect()->route('emissions.show', $emission)
-            ->with('success', 'Émission créée avec succès.' . $messageExo);
+            ->with('success', 'Émission créée avec succès.'.$messageExo);
     }
 
     public function show(EmissionTaxe $emission): View
@@ -234,8 +236,8 @@ class EmissionTaxeController extends Controller
         ]);
 
         $montantBase = $emission->montant_prorata > 0 ? $emission->montant_prorata : $emission->montant_annuel;
-        $totalRegle  = $emission->reglements->reduce(
-            fn($carry, $r) => bcadd($carry, (string) $r->montant_impute, 2), '0'
+        $totalRegle = $emission->reglements->reduce(
+            fn ($carry, $r) => bcadd($carry, (string) $r->montant_impute, 2), '0'
         );
         $soldeDu = $emission->soldeDu();
 
@@ -248,7 +250,7 @@ class EmissionTaxeController extends Controller
      * Avis d'imposition (PDF) d'une émission, faisant apparaître le montant brut,
      * l'exonération éventuelle et le montant net dû.
      */
-    public function avis(EmissionTaxe $emission): \Symfony\Component\HttpFoundation\Response
+    public function avis(EmissionTaxe $emission): Response
     {
         $emission->load([
             'etablissement.contribuable', 'natureTaxe', 'periodicite',
@@ -257,16 +259,15 @@ class EmissionTaxeController extends Controller
 
         $collectivite = Collectivite::first();
 
-        $pdf = Pdf::loadView('emissions.avis-pdf', compact('emission', 'collectivite'))->setPaper('a4');
-
-        return $pdf->download('avis-imposition-' . $emission->numero_emission . '.pdf');
+        return (new AvisImposition($emission, $collectivite))
+            ->reponse('avis-imposition-'.$emission->numero_emission.'.pdf');
     }
 
     public function edit(EmissionTaxe $emission): View
     {
         $emission->load(['etablissement.contribuable', 'natureTaxe', 'periodicite', 'exerciceFiscal']);
 
-        $naturesTaxe  = $this->selectOptions->charger(NatureTaxe::class, 'libelle_court');
+        $naturesTaxe = $this->selectOptions->charger(NatureTaxe::class, 'libelle_court');
         $periodicites = $this->selectOptions->charger(Periodicite::class, 'libelle');
 
         $champsFiges = $emission->reglements()->exists();
@@ -289,13 +290,13 @@ class EmissionTaxeController extends Controller
             ]);
         } else {
             $donnees = $request->validate([
-                'nature_taxe_id'   => ['required', 'integer', 'exists:nature_taxe,id'],
-                'periodicite_id'   => ['required', 'integer', 'exists:periodicite,id'],
-                'ca_annuel'        => ['nullable', 'numeric', 'min:0'],
-                'montant_annuel'   => ['required', 'numeric', 'min:0'],
-                'montant_periode'  => ['nullable', 'numeric', 'min:0'],
-                'nb_mois_prorata'  => ['nullable', 'integer', 'min:1', 'max:12'],
-                'montant_prorata'  => ['nullable', 'numeric', 'min:0'],
+                'nature_taxe_id' => ['required', 'integer', 'exists:nature_taxe,id'],
+                'periodicite_id' => ['required', 'integer', 'exists:periodicite,id'],
+                'ca_annuel' => ['nullable', 'numeric', 'min:0'],
+                'montant_annuel' => ['required', 'numeric', 'min:0'],
+                'montant_periode' => ['nullable', 'numeric', 'min:0'],
+                'nb_mois_prorata' => ['nullable', 'integer', 'min:1', 'max:12'],
+                'montant_prorata' => ['nullable', 'numeric', 'min:0'],
                 'date_declaration' => ['nullable', 'date'],
                 'date_liquidation' => ['nullable', 'date'],
             ]);
@@ -320,10 +321,10 @@ class EmissionTaxeController extends Controller
 
         $etablissementId = $emission->etablissement_id;
         $emission->update([
-            'supprime_le'       => now(),
+            'supprime_le' => now(),
             'motif_suppression' => $valide['motif_suppression'],
-            'supprime_par'      => auth()->id(),
-            'updated_by'        => auth()->id(),
+            'supprime_par' => auth()->id(),
+            'updated_by' => auth()->id(),
         ]);
 
         return redirect()->route('etablissements.show', $etablissementId)
@@ -335,7 +336,7 @@ class EmissionTaxeController extends Controller
         $filtre = EmissionTaxeFiltreForm::fromRequest($request);
 
         return $excel->telecharger('emissions_taxes', function (Writer $writer) use ($filtre): void {
-            $entete = (new Style())->setFontBold();
+            $entete = (new Style)->setFontBold();
             $writer->addRow(Row::fromValues([
                 'N° Émission', 'N° Établissement', 'Contribuable', 'Nature taxe',
                 'Exercice', 'Périodicité', 'Montant annuel', 'Solde dû', 'Date liquidation',
@@ -348,12 +349,12 @@ class EmissionTaxeController extends Controller
                     $contrib = $e->etablissement?->contribuable;
                     $nomContrib = $contrib
                         ? ($contrib->type_personne === 'PP'
-                            ? trim(($contrib->nom ?? '') . ' ' . ($contrib->prenoms ?? ''))
+                            ? trim(($contrib->nom ?? '').' '.($contrib->prenoms ?? ''))
                             : ($contrib->raison_sociale ?? ''))
                         : '';
 
                     $montant = (float) ($e->montant_prorata > 0 ? $e->montant_prorata : $e->montant_annuel);
-                    $solde   = (float) $e->soldeDu();
+                    $solde = (float) $e->soldeDu();
 
                     $writer->addRow(Row::fromValues([
                         $e->numero_emission ?? '',

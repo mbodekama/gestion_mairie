@@ -16,12 +16,6 @@
     </div>
 @endif
 
-@if (session('error'))
-    <div class="alert alert-danger alert-dismissible py-2 fs-9" role="alert">
-        {{ session('error') }}
-        <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
-    </div>
-@endif
 
 <form method="POST" action="{{ route('emissions.update', $emission) }}" novalidate>
     @csrf @method('PUT')

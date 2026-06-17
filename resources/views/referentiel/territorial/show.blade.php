@@ -2,25 +2,14 @@
 
 <x-page-header titre="Commune {{ $commune->libelle }}" />
 
-@if (session('success'))
-    <div class="alert alert-success alert-dismissible py-2 fs-9" role="alert">
-        {{ session('success') }}
-        <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
-    </div>
-@endif
-@if (session('error'))
-    <div class="alert alert-danger alert-dismissible py-2 fs-9" role="alert">
-        {{ session('error') }}
-        <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
-    </div>
-@endif
 
 <div class="row g-3 mb-3">
     {{-- Fiche commune --}}
     <div class="col-lg-6">
-        <div class="card h-100">
+        <div class="card h-100 card-section">
             <div class="card-header py-3 d-flex align-items-center justify-content-between">
-                <h5 class="mb-0">
+                <h5 class="mb-0 d-flex align-items-center">
+                    <span class="num-section">01</span>
                     <span class="fas fa-map me-2 text-primary"></span>Commune
                 </h5>
                 <div class="d-flex gap-2">
@@ -56,14 +45,18 @@
                     </dd>
                 </dl>
             </div>
+            <div class="card-footer d-flex justify-content-end align-items-center py-2 fs-9 text-600">
+                <span class="fas fa-clock me-1"></span>Mis à jour le {{ $commune->updated_at?->format('d/m/Y') ?? '—' }}
+            </div>
         </div>
     </div>
 
     {{-- Statistiques --}}
     <div class="col-lg-6">
-        <div class="card h-100">
+        <div class="card h-100 card-section">
             <div class="card-header py-3">
-                <h5 class="mb-0">
+                <h5 class="mb-0 d-flex align-items-center">
+                    <span class="num-section">02</span>
                     <span class="fas fa-chart-bar me-2 text-primary"></span>Utilisation
                 </h5>
             </div>
@@ -99,6 +92,9 @@
                         </p>
                     @endif
                 </div>
+            </div>
+            <div class="card-footer d-flex justify-content-end align-items-center py-2 fs-9 text-600">
+                <span class="fas fa-store me-1"></span>{{ $nbEtablissements }} établissement(s) rattaché(s)
             </div>
         </div>
     </div>
