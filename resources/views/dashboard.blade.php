@@ -1,99 +1,138 @@
 <x-app-layout :title="__('Dashboard')">
     <x-page-header titre="Tableau de bord" :sous-titre="__('Bienvenue, :name ! Voici un aperçu de l\'activité fiscale.', ['name' => auth()->user()->name])" />
 
+    {{-- Recouvrements des 12 derniers mois (collectivité connectée) --}}
     <div class="row g-3 mb-3">
-        <div class="col-md-6 col-xxl-3">
-            <div class="card h-md-100 ecommerce-card-min-width">
-                <div class="card-header pb-0">
-                    <h6 class="mb-0 mt-2 d-flex align-items-center">{{ __('Weekly Sales') }}<span class="ms-1 text-400" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ __("Calculated according to last week's sales") }}"><span class="far fa-question-circle" data-fa-transform="shrink-1"></span></span></h6>
-                </div>
-                <div class="card-body d-flex flex-column justify-content-end">
-                    <div class="row">
+        <div class="col-12">
+            <div class="card rounded-3 overflow-hidden h-100 mb-3">
+                <div class="card-body bg-line-chart-gradient d-flex flex-column justify-content-between">
+                    <div class="row align-items-center g-0" data-bs-theme="light">
                         <div class="col">
-                            <p class="font-sans-serif lh-1 mb-1 fs-5">$47K</p><span class="badge badge-subtle-success rounded-pill fs-11">+3.5%</span>
+                            <h4 class="text-white mb-0">Recouvrements ce mois-ci · {{ number_format($recouvrements['mois_courant'], 0, ',', ' ') }} FCFA</h4>
+                            <p class="fs-10 fw-semi-bold text-white mb-0">Mois précédent <span class="opacity-50">{{ number_format($recouvrements['mois_precedent'], 0, ',', ' ') }} FCFA</span></p>
                         </div>
-                        <div class="col-auto ps-0">
-                            <div class="echart-bar-weekly-sales h-100"></div>
+                        <div class="col-auto d-none d-sm-block">
+                            <span class="badge badge-subtle-light">12 derniers mois · Total {{ number_format($recouvrements['total'], 0, ',', ' ') }} FCFA</span>
                         </div>
                     </div>
+                    <div class="echart-recouvrement-12-mois mt-3" style="height:240px"></div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 col-xxl-3">
+    </div>
+
+    {{-- Indicateurs clés (KPI) de l'exercice fiscal en cours — collectivité connectée --}}
+    <div class="row g-3 mb-3" id="statBloc1">
+        <div class="col-sm-6 col-md-3">
+            <div class="card overflow-hidden" style="min-width: 12rem">
+                <div class="bg-holder bg-card" style="background-image:url({{ asset('assets/img/icons/spot-illustrations/corner-1.png') }});"></div>
+                <!--/.bg-holder-->
+                <div class="card-body position-relative">
+                    <h6>Contribuables actifs<span class="badge badge-subtle-warning rounded-pill ms-2">{{ number_format($indicateurs['etablissements_actifs'], 0, ',', ' ') }} étab.</span></h6>
+                    <div class="display-4 fs-5 mb-2 fw-normal font-sans-serif text-warning">{{ number_format($indicateurs['contribuables_actifs'], 0, ',', ' ') }}</div>
+                    <a class="fw-semi-bold fs-10 text-nowrap" href="{{ route('contribuables.index') }}">Voir le recensement<span class="fas fa-angle-right ms-1" data-fa-transform="down-1"></span></a>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <div class="card overflow-hidden" style="min-width: 12rem">
+                <div class="bg-holder bg-card" style="background-image:url({{ asset('assets/img/icons/spot-illustrations/corner-2.png') }});"></div>
+                <!--/.bg-holder-->
+                <div class="card-body position-relative">
+                    <h6>Montant émis @if($indicateurs['exercice_annee'])<span class="badge badge-subtle-info rounded-pill ms-2">Exercice {{ $indicateurs['exercice_annee'] }}</span>@endif</h6>
+                    <div class="display-4 fs-5 mb-2 fw-normal font-sans-serif text-info">{{ number_format($indicateurs['montant_emis'], 0, ',', ' ') }} <span class="fs-10 text-500">FCFA</span></div>
+                    <a class="fw-semi-bold fs-10 text-nowrap" href="{{ route('emissions.index') }}">{{ number_format($indicateurs['nb_emissions'], 0, ',', ' ') }} émission(s)<span class="fas fa-angle-right ms-1" data-fa-transform="down-1"></span></a>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <div class="card overflow-hidden" style="min-width: 12rem">
+                <div class="bg-holder bg-card" style="background-image:url({{ asset('assets/img/icons/spot-illustrations/corner-3.png') }});"></div>
+                <!--/.bg-holder-->
+                <div class="card-body position-relative">
+                    <h6>Recouvré<span class="badge badge-subtle-success rounded-pill ms-2">{{ number_format($indicateurs['taux_recouvrement'], 1, ',', ' ') }} %</span></h6>
+                    <div class="display-4 fs-5 mb-2 fw-normal font-sans-serif text-success">{{ number_format($indicateurs['montant_recouvre'], 0, ',', ' ') }} <span class="fs-10 text-500">FCFA</span></div>
+                    <a class="fw-semi-bold fs-10 text-nowrap" href="{{ route('recouvrements.index') }}">Voir les recouvrements<span class="fas fa-angle-right ms-1" data-fa-transform="down-1"></span></a>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <div class="card overflow-hidden" style="min-width: 12rem">
+                <div class="bg-holder bg-card" style="background-image:url({{ asset('assets/img/icons/spot-illustrations/corner-4.png') }});"></div>
+                <!--/.bg-holder-->
+                <div class="card-body position-relative">
+                    <h6>Reste à recouvrer<span class="badge badge-subtle-danger rounded-pill ms-2">{{ number_format(max(100 - $indicateurs['taux_recouvrement'], 0), 1, ',', ' ') }} %</span></h6>
+                    <div class="display-4 fs-5 mb-2 fw-normal font-sans-serif text-danger">{{ number_format($indicateurs['reste_a_recouvrer'], 0, ',', ' ') }} <span class="fs-10 text-500">FCFA</span></div>
+                    <a class="fw-semi-bold fs-10 text-nowrap" href="{{ route('emissions.index') }}">Émissions à solder<span class="fas fa-angle-right ms-1" data-fa-transform="down-1"></span></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Répartitions analytiques de l'exercice en cours (cartes à mini-graphique) --}}
+    <div class="row g-3 mb-3">
+        {{-- Objectif de recouvrement : réalisé vs cible (jauge) --}}
+        <div class="col-md-6">
             <div class="card h-md-100">
                 <div class="card-header pb-0">
-                    <h6 class="mb-0 mt-2">{{ __('Total Order') }}</h6>
+                    <h6 class="mb-0 mt-2 d-flex align-items-center">Objectif de recouvrement<span class="ms-1 text-400" data-bs-toggle="tooltip" data-bs-placement="top" title="Recouvré sur l'exercice rapporté à l'objectif annuel"><span class="far fa-question-circle" data-fa-transform="shrink-1"></span></span></h6>
                 </div>
-                <div class="card-body d-flex flex-column justify-content-end">
-                    <div class="row justify-content-between">
-                        <div class="col-auto align-self-end">
-                            <div class="fs-5 fw-normal font-sans-serif text-700 lh-1 mb-1">58.4K</div><span class="badge rounded-pill fs-11 bg-200 text-primary"><span class="fas fa-caret-up me-1"></span>13.6%</span>
-                        </div>
-                        <div class="col-auto ps-0 mt-n4">
-                            <div class="echart-default-total-order" data-echarts='{"tooltip":{"trigger":"axis","formatter":"{b0} : {c0}"},"xAxis":{"data":["Week 4","Week 5","Week 6","Week 7"]},"series":[{"type":"line","data":[20,40,100,120],"smooth":true,"lineStyle":{"width":3}}],"grid":{"bottom":"2%","top":"2%","right":"0","left":"10px"}}' data-echart-responsive="true"></div>
-                        </div>
-                    </div>
+                <div class="card-body d-flex flex-column justify-content-between p-0">
+                    <div class="echart-kpi-objectif w-100" style="height:230px" data-taux="{{ $repartitions['objectif']['taux'] }}"></div>
+                    <p class="text-center fs-10 mb-2 px-3">
+                        <span class="text-700 fw-semi-bold">{{ number_format($repartitions['objectif']['recouvre'], 0, ',', ' ') }}</span>
+                        <span class="text-500"> / {{ number_format($repartitions['objectif']['montant'], 0, ',', ' ') }} FCFA</span>
+                    </p>
                 </div>
+                @include('partials.dashboard-footer-exercice')
             </div>
         </div>
-        <div class="col-md-6 col-xxl-3">
+        {{-- Montant émis par nature de taxe (barres) --}}
+        <div class="col-md-6">
             <div class="card h-md-100">
-                <div class="card-body">
-                    <div class="row h-100 justify-content-between g-0">
-                        <div class="col-5 col-sm-6 col-xxl pe-2">
-                            <h6 class="mt-1">{{ __('Market Share') }}</h6>
-                            <div class="fs-11 mt-3">
-                                <div class="d-flex flex-between-center mb-1">
-                                    <div class="d-flex align-items-center"><span class="dot bg-primary"></span><span class="fw-semi-bold">Samsung</span></div>
-                                    <div class="d-xxl-none">33%</div>
-                                </div>
-                                <div class="d-flex flex-between-center mb-1">
-                                    <div class="d-flex align-items-center"><span class="dot bg-info"></span><span class="fw-semi-bold">Huawei</span></div>
-                                    <div class="d-xxl-none">29%</div>
-                                </div>
-                                <div class="d-flex flex-between-center mb-1">
-                                    <div class="d-flex align-items-center"><span class="dot bg-300"></span><span class="fw-semi-bold">Apple</span></div>
-                                    <div class="d-xxl-none">20%</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-auto position-relative">
-                            <div class="echart-market-share"></div>
-                            <div class="position-absolute top-50 start-50 translate-middle text-1100 fs-7">26M</div>
-                        </div>
-                    </div>
+                <div class="card-header pb-0">
+                    <h6 class="mb-0 mt-2">Émissions par nature</h6>
                 </div>
+                <div class="card-body d-flex align-items-center p-2">
+                    @if (count($repartitions['natures_taxe']['labels']))
+                        <div class="echart-kpi-natures w-100" style="height:240px"></div>
+                    @else
+                        <p class="text-500 fs-10 mb-0 w-100 text-center">Aucune émission sur l'exercice</p>
+                    @endif
+                </div>
+                @include('partials.dashboard-footer-exercice')
             </div>
         </div>
-        <div class="col-md-6 col-xxl-3">
+        {{-- Recouvrements par mode de règlement (anneau) --}}
+        <div class="col-md-6">
             <div class="card h-md-100">
-                <div class="card-header d-flex flex-between-center pb-0">
-                    <h6 class="mb-0">{{ __('Weather') }}</h6>
-                    <div class="dropdown font-sans-serif btn-reveal-trigger">
-                        <button class="btn btn-link text-600 btn-sm dropdown-toggle dropdown-caret-none btn-reveal" type="button" id="dropdown-weather-update" data-bs-toggle="dropdown" data-boundary="viewport" aria-haspopup="true" aria-expanded="false"><span class="fas fa-ellipsis-h fs-11"></span></button>
-                        <div class="dropdown-menu dropdown-menu-end border py-2" aria-labelledby="dropdown-weather-update"><a class="dropdown-item" href="#!">{{ __('View') }}</a><a class="dropdown-item" href="#!">{{ __('Export') }}</a>
-                            <div class="dropdown-divider"></div><a class="dropdown-item text-danger" href="#!">{{ __('Remove') }}</a>
-                        </div>
-                    </div>
+                <div class="card-header pb-0">
+                    <h6 class="mb-0 mt-2">Modes de règlement</h6>
                 </div>
-                <div class="card-body pt-2">
-                    <div class="row g-0 h-100 align-items-center">
-                        <div class="col">
-                            <div class="d-flex align-items-center"><img class="me-3" src="{{ asset('assets/img/icons/weather-icon.png') }}" alt="" height="60" />
-                                <div>
-                                    <h6 class="mb-2">New York City</h6>
-                                    <div class="fs-11 fw-semi-bold">
-                                        <div class="text-warning">{{ __('Sunny') }}</div>{{ __('Precipitation: :value', ['value' => '50%']) }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-auto text-center ps-2">
-                            <div class="fs-5 fw-normal font-sans-serif text-primary mb-1 lh-1">31&deg;</div>
-                            <div class="fs-10 text-800">32&deg; / 25&deg;</div>
-                        </div>
-                    </div>
+                <div class="card-body d-flex align-items-center justify-content-center p-2">
+                    @if (count($repartitions['modes_reglement']['labels']))
+                        <div class="echart-pie-modes-align w-100" style="min-height:260px"></div>
+                    @else
+                        <p class="text-500 fs-10 mb-0 text-center">Aucun encaissement sur l'exercice</p>
+                    @endif
                 </div>
+                @include('partials.dashboard-footer-exercice')
+            </div>
+        </div>
+        {{-- Structure des contribuables PP / PM (anneau) --}}
+        <div class="col-md-6">
+            <div class="card h-md-100">
+                <div class="card-header pb-0">
+                    <h6 class="mb-0 mt-2">Contribuables PP / PM</h6>
+                </div>
+                <div class="card-body d-flex align-items-center justify-content-center p-2">
+                    @if ($repartitions['personnes']['physiques'] + $repartitions['personnes']['morales'] > 0)
+                        <div class="echart-kpi-personnes w-100" style="height:240px"></div>
+                    @else
+                        <p class="text-500 fs-10 mb-0 text-center">Aucun contribuable actif</p>
+                    @endif
+                </div>
+                @include('partials.dashboard-footer-exercice')
             </div>
         </div>
     </div>
@@ -104,55 +143,47 @@
                 <div class="card-header bg-body-tertiary">
                     <div class="row align-items-center">
                         <div class="col">
-                            <h6 class="mb-0">{{ __('Running Projects') }}</h6>
-                        </div>
-                        <div class="col-auto text-center pe-x1">
-                            <select class="form-select form-select-sm">
-                                <option>{{ __('Working Time') }}</option>
-                                <option>{{ __('Estimated Time') }}</option>
-                                <option>{{ __('Billable Time') }}</option>
-                            </select>
+                            <h6 class="mb-0">Top 5 des contribuables</h6>
+                            <p class="fs-11 text-500 mb-0">Classement sur le total recouvré (toutes taxes et établissements)</p>
                         </div>
                     </div>
                 </div>
                 <div class="card-body p-0">
                     @php
-                        $projects = [
-                            ['name' => 'Falcon', 'initial' => 'F', 'color' => 'primary', 'progress' => 38, 'time' => '12:50:00'],
-                            ['name' => 'Reign', 'initial' => 'R', 'color' => 'success', 'progress' => 79, 'time' => '25:20:00'],
-                            ['name' => 'Boots4', 'initial' => 'B', 'color' => 'info', 'progress' => 90, 'time' => '58:20:00'],
-                            ['name' => 'Raven', 'initial' => 'R', 'color' => 'warning', 'progress' => 40, 'time' => '21:20:00'],
-                            ['name' => 'Slick', 'initial' => 'S', 'color' => 'danger', 'progress' => 70, 'time' => '31:20:00'],
-                        ];
+                        $couleursTop = ['primary', 'success', 'info', 'warning', 'danger'];
                     @endphp
-                    @foreach ($projects as $index => $project)
+                    @forelse ($topContribuables as $index => $contribuable)
+                        @php $couleur = $couleursTop[$index % count($couleursTop)]; @endphp
                         <div class="row g-0 align-items-center py-2 position-relative {{ $loop->last ? '' : 'border-bottom' }} border-200">
                             <div class="col ps-x1 py-1 position-static">
                                 <div class="d-flex align-items-center">
                                     <div class="avatar avatar-xl me-3">
-                                        <div class="avatar-name rounded-circle bg-{{ $project['color'] }}-subtle text-dark"><span class="fs-9 text-{{ $project['color'] }}">{{ $project['initial'] }}</span></div>
+                                        <div class="avatar-name rounded-circle bg-{{ $couleur }}-subtle text-dark"><span class="fs-9 text-{{ $couleur }}">{{ $contribuable['initiale'] }}</span></div>
                                     </div>
                                     <div class="flex-1">
-                                        <h6 class="mb-0 d-flex align-items-center"><a class="text-800 stretched-link" href="#!">{{ $project['name'] }}</a><span class="badge rounded-pill ms-2 bg-200 text-primary">{{ $project['progress'] }}%</span></h6>
+                                        <h6 class="mb-0 d-flex align-items-center"><a class="text-800 stretched-link" href="{{ route('contribuables.show', $contribuable['contribuable_id']) }}">{{ \Illuminate\Support\Str::limit($contribuable['nom_affiche'], 28) }}</a><span class="badge rounded-pill ms-2 bg-200 text-primary">#{{ $index + 1 }}</span></h6>
+                                        <p class="fs-11 text-500 mb-0">{{ $contribuable['numero'] }}</p>
                                     </div>
                                 </div>
                             </div>
                             <div class="col py-1">
                                 <div class="row flex-end-center g-0">
                                     <div class="col-auto pe-2">
-                                        <div class="fs-10 fw-semi-bold">{{ $project['time'] }}</div>
+                                        <div class="fs-10 fw-semi-bold">{{ number_format($contribuable['total'], 0, ',', ' ') }} FCFA</div>
                                     </div>
                                     <div class="col-5 pe-x1 ps-2">
-                                        <div class="progress bg-200 me-2" style="height: 5px;" role="progressbar" aria-valuenow="{{ $project['progress'] }}" aria-valuemin="0" aria-valuemax="100">
-                                            <div class="progress-bar rounded-pill" style="width: {{ $project['progress'] }}%"></div>
+                                        <div class="progress bg-200 me-2" style="height: 5px;" role="progressbar" aria-valuenow="{{ $contribuable['pourcentage'] }}" aria-valuemin="0" aria-valuemax="100">
+                                            <div class="progress-bar bg-{{ $couleur }} rounded-pill" style="width: {{ $contribuable['pourcentage'] }}%"></div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    @endforeach
+                    @empty
+                        <p class="text-500 fs-10 text-center py-5 mb-0">Aucun recouvrement enregistré</p>
+                    @endforelse
                 </div>
-                <div class="card-footer bg-body-tertiary p-0"><a class="btn btn-sm btn-link d-block w-100 py-2" href="#!">{{ __('Show all projects') }}<span class="fas fa-chevron-right ms-1 fs-11"></span></a></div>
+                <div class="card-footer bg-body-tertiary p-0"><a class="btn btn-sm btn-link d-block w-100 py-2" href="{{ route('contribuables.index') }}">Voir tous les contribuables<span class="fas fa-chevron-right ms-1 fs-11"></span></a></div>
             </div>
         </div>
         <div class="col-lg-6 ps-lg-2 mb-3">
@@ -160,107 +191,260 @@
                 <div class="card-header">
                     <div class="row flex-between-center">
                         <div class="col-auto">
-                            <h6 class="mb-0">{{ __('Total Sales') }}</h6>
+                            <h6 class="mb-0">Émissions des 12 derniers mois</h6>
+                            <p class="fs-11 text-500 mb-0">Total émis sur la période · {{ number_format($emissions['total'], 0, ',', ' ') }} FCFA</p>
                         </div>
-                        <div class="col-auto d-flex">
-                            <select class="form-select form-select-sm select-month me-2">
-                                <option value="0">{{ __('January') }}</option>
-                                <option value="1">{{ __('February') }}</option>
-                                <option value="2">{{ __('March') }}</option>
-                                <option value="3">{{ __('April') }}</option>
-                                <option value="4">{{ __('May') }}</option>
-                                <option value="5">{{ __('Jun') }}</option>
-                                <option value="6">{{ __('July') }}</option>
-                                <option value="7">{{ __('August') }}</option>
-                                <option value="8">{{ __('September') }}</option>
-                                <option value="9">{{ __('October') }}</option>
-                                <option value="10">{{ __('November') }}</option>
-                                <option value="11">{{ __('December') }}</option>
-                            </select>
-                            <div class="dropdown font-sans-serif btn-reveal-trigger">
-                                <button class="btn btn-link text-600 btn-sm dropdown-toggle dropdown-caret-none btn-reveal" type="button" id="dropdown-total-sales" data-bs-toggle="dropdown" data-boundary="viewport" aria-haspopup="true" aria-expanded="false"><span class="fas fa-ellipsis-h fs-11"></span></button>
-                                <div class="dropdown-menu dropdown-menu-end border py-2" aria-labelledby="dropdown-total-sales"><a class="dropdown-item" href="#!">{{ __('View') }}</a><a class="dropdown-item" href="#!">{{ __('Export') }}</a>
-                                    <div class="dropdown-divider"></div><a class="dropdown-item text-danger" href="#!">{{ __('Remove') }}</a>
-                                </div>
-                            </div>
+                        <div class="col-auto">
+                            <span class="badge badge-subtle-primary rounded-pill">Ce mois {{ number_format($emissions['mois_courant'], 0, ',', ' ') }} FCFA</span>
                         </div>
                     </div>
                 </div>
                 <div class="card-body h-100 pe-0">
-                    <div class="echart-line-total-sales h-100" data-echart-responsive="true"></div>
+                    <div class="echart-emissions-12-mois h-100" style="min-height:240px" data-echart-responsive="true"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row g-0">
-        <div class="col-lg-6 col-xl-7 col-xxl-8 mb-3 pe-lg-2">
-            <div class="card h-lg-100">
-                <div class="card-body d-flex align-items-center">
-                    <div class="w-100">
-                        <h6 class="mb-3 text-800">{{ __('Using Storage') }} <strong class="text-1100">1775.06 MB</strong> {{ __('of 2 GB') }}</h6>
-                        <div class="progress-stacked mb-3 rounded-3" style="height: 10px;">
-                            <div class="progress" style="width: 43.72%;" role="progressbar" aria-valuenow="43.72" aria-valuemin="0" aria-valuemax="100">
-                                <div class="progress-bar bg-progress-gradient border-end border-100 border-2"></div>
-                            </div>
-                            <div class="progress" style="width: 18.76%;" role="progressbar" aria-valuenow="18.76" aria-valuemin="0" aria-valuemax="100">
-                                <div class="progress-bar bg-info border-end border-100 border-2"></div>
-                            </div>
-                            <div class="progress" style="width: 9.38%;" role="progressbar" aria-valuenow="9.38" aria-valuemin="0" aria-valuemax="100">
-                                <div class="progress-bar bg-success border-end border-100 border-2"></div>
-                            </div>
-                            <div class="progress" style="width: 28.14%;" role="progressbar" aria-valuenow="28.14" aria-valuemin="0" aria-valuemax="100">
-                                <div class="progress-bar bg-200"></div>
-                            </div>
-                        </div>
-                        <div class="row fs-10 fw-semi-bold text-500 g-0">
-                            <div class="col-auto d-flex align-items-center pe-3"><span class="dot bg-primary"></span><span>{{ __('Regular') }}</span><span class="d-none d-md-inline-block d-lg-none d-xxl-inline-block">(895MB)</span></div>
-                            <div class="col-auto d-flex align-items-center pe-3"><span class="dot bg-info"></span><span>{{ __('System') }}</span><span class="d-none d-md-inline-block d-lg-none d-xxl-inline-block">(379MB)</span></div>
-                            <div class="col-auto d-flex align-items-center pe-3"><span class="dot bg-success"></span><span>{{ __('Shared') }}</span><span class="d-none d-md-inline-block d-lg-none d-xxl-inline-block">(192MB)</span></div>
-                            <div class="col-auto d-flex align-items-center"><span class="dot bg-200"></span><span>{{ __('Free') }}</span><span class="d-none d-md-inline-block d-lg-none d-xxl-inline-block">(576MB)</span></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-6 col-xl-5 col-xxl-4 mb-3 ps-lg-2">
-            <div class="card h-lg-100">
-                <div class="bg-holder bg-card" style="background-image:url({{ asset('assets/img/icons/spot-illustrations/corner-1.png') }});"></div>
-                <!--/.bg-holder-->
-                <div class="card-body position-relative">
-                    <h5 class="text-warning">{{ __('Running out of your space?') }}</h5>
-                    <p class="fs-10 mb-0">{{ __('Your storage will be running out soon. Get more space and powerful productivity features.') }}</p><a class="btn btn-link fs-10 text-warning mt-lg-3 ps-0" href="#!">{{ __('Upgrade storage') }}<span class="fas fa-chevron-right ms-1" data-fa-transform="shrink-4 down-1"></span></a>
-                </div>
-            </div>
-        </div>
-    </div>
+    @push('scripts')
+        <script>
+            (function () {
+                var el = document.querySelector('.echart-recouvrement-12-mois');
+                if (!el || typeof echarts === 'undefined') return;
 
-    <div class="row g-3">
-        <div class="col-12">
-            <div class="card h-100">
-                <div class="card-header d-flex flex-between-center bg-body-tertiary py-2">
-                    <h6 class="mb-0">{{ __('Account') }}</h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="avatar avatar-xl me-3">
-                            <div class="avatar-name rounded-circle bg-primary-subtle text-primary">
-                                <span>{{ Str::of(auth()->user()->name)->substr(0, 1)->upper() }}</span>
-                            </div>
-                        </div>
-                        <div>
-                            <h6 class="mb-0">{{ auth()->user()->name }}</h6>
-                            <p class="mb-0 text-600 fs-10">{{ auth()->user()->email }}</p>
-                        </div>
-                    </div>
-                    <p class="mb-0 text-600 fs-10">
-                        {{ __('Member since :date', ['date' => auth()->user()->created_at->translatedFormat('d M Y')]) }}
-                    </p>
-                </div>
-                <div class="card-footer bg-body-tertiary py-2 text-end">
-                    <a class="btn btn-link btn-sm px-0 fw-medium" href="{{ route('profile.edit') }}">{{ __('Manage profile') }}<span class="fas fa-chevron-right ms-1 fs-11"></span></a>
-                </div>
-            </div>
-        </div>
-    </div>
+                var labels = @json($recouvrements['labels']);
+                var montants = @json($recouvrements['montants']);
+                var fmt = new Intl.NumberFormat('fr-FR');
+
+                var chart = echarts.init(el);
+                chart.setOption({
+                    tooltip: {
+                        trigger: 'axis',
+                        formatter: function (params) {
+                            var p = params[0];
+                            return p.axisValue + '<br/><strong>' + fmt.format(p.data) + ' FCFA</strong>';
+                        }
+                    },
+                    grid: { left: '2%', right: '3%', top: '12%', bottom: '5%', containLabel: true },
+                    xAxis: {
+                        type: 'category',
+                        data: labels,
+                        boundaryGap: false,
+                        axisLine: { lineStyle: { color: 'rgba(255,255,255,0.3)' } },
+                        axisTick: { show: false },
+                        axisLabel: { color: 'rgba(255,255,255,0.85)', fontSize: 11 }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        splitLine: { lineStyle: { color: 'rgba(255,255,255,0.15)' } },
+                        axisLabel: {
+                            color: 'rgba(255,255,255,0.85)', fontSize: 11,
+                            formatter: function (v) {
+                                return new Intl.NumberFormat('fr-FR', { notation: 'compact' }).format(v);
+                            }
+                        }
+                    },
+                    series: [{
+                        type: 'line',
+                        data: montants,
+                        smooth: true,
+                        symbol: 'circle',
+                        symbolSize: 6,
+                        itemStyle: { color: '#fff' },
+                        lineStyle: { color: '#fff', width: 3 },
+                        areaStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: 'rgba(255,255,255,0.45)' },
+                                { offset: 1, color: 'rgba(255,255,255,0)' }
+                            ])
+                        }
+                    }]
+                });
+
+                window.addEventListener('resize', function () { chart.resize(); });
+            })();
+        </script>
+
+        {{-- Cartes KPI à mini-graphique : objectif, natures de taxe, modes de règlement, PP/PM --}}
+        <script>
+            (function () {
+                if (typeof echarts === 'undefined') return;
+
+                var fmt = new Intl.NumberFormat('fr-FR');
+                var palette = ['#2c7be5', '#27bcfd', '#00d27a', '#f5803e', '#e63757', '#748194'];
+
+                // 1. Jauge — objectif de recouvrement
+                var elG = document.querySelector('.echart-kpi-objectif');
+                if (elG) {
+                    var taux = parseFloat(elG.dataset.taux) || 0;
+                    var couleur = taux >= 100 ? '#00d27a' : (taux >= 50 ? '#2c7be5' : '#f5803e');
+                    var g = echarts.init(elG);
+                    g.setOption({
+                        series: [{
+                            type: 'gauge', startAngle: 220, endAngle: -40, min: 0, max: 100,
+                            radius: '95%', center: ['50%', '58%'],
+                            progress: { show: true, width: 10, itemStyle: { color: couleur } },
+                            axisLine: { lineStyle: { width: 10, color: [[1, 'rgba(115,129,148,0.2)']] } },
+                            pointer: { show: false }, axisTick: { show: false },
+                            splitLine: { show: false }, axisLabel: { show: false }, anchor: { show: false },
+                            title: { show: false },
+                            detail: {
+                                valueAnimation: true, offsetCenter: [0, 0],
+                                formatter: '{value}%', fontSize: 22, fontWeight: 'bold', color: couleur
+                            },
+                            data: [{ value: taux }]
+                        }]
+                    });
+                    window.addEventListener('resize', function () { g.resize(); });
+                }
+
+                // 2. Barres horizontales — émissions par nature de taxe
+                var elN = document.querySelector('.echart-kpi-natures');
+                if (elN) {
+                    var labelsN = @json($repartitions['natures_taxe']['labels']);
+                    var dataN = @json($repartitions['natures_taxe']['montants']);
+                    var n = echarts.init(elN);
+                    n.setOption({
+                        tooltip: {
+                            trigger: 'axis', axisPointer: { type: 'shadow' },
+                            formatter: function (p) { return p[0].name + '<br/><strong>' + fmt.format(p[0].value) + ' FCFA</strong>'; }
+                        },
+                        grid: { left: '2%', right: '8%', top: '4%', bottom: '2%', containLabel: true },
+                        xAxis: { type: 'value', axisLabel: { show: false }, axisLine: { show: false }, splitLine: { show: false } },
+                        yAxis: {
+                            type: 'category', data: labelsN.slice().reverse(),
+                            axisTick: { show: false }, axisLine: { show: false },
+                            axisLabel: { color: '#748194', fontSize: 11 }
+                        },
+                        series: [{
+                            type: 'bar', data: dataN.slice().reverse(), barWidth: '55%',
+                            itemStyle: { color: '#2c7be5', borderRadius: [0, 3, 3, 0] }
+                        }]
+                    });
+                    window.addEventListener('resize', function () { n.resize(); });
+                }
+
+                // Fabrique d'anneau (donut) réutilisable
+                function donut(selecteur, labels, valeurs, monetaire) {
+                    var el = document.querySelector(selecteur);
+                    if (!el) return;
+                    var c = echarts.init(el);
+                    c.setOption({
+                        color: palette,
+                        tooltip: {
+                            trigger: 'item',
+                            formatter: function (p) {
+                                var v = monetaire ? fmt.format(p.value) + ' FCFA' : fmt.format(p.value);
+                                return p.name + '<br/><strong>' + v + '</strong> (' + p.percent + '%)';
+                            }
+                        },
+                        legend: { bottom: 0, left: 'center', itemWidth: 10, itemHeight: 10, textStyle: { color: '#748194', fontSize: 11 } },
+                        series: [{
+                            type: 'pie', radius: ['45%', '70%'], center: ['50%', '42%'],
+                            avoidLabelOverlap: true, label: { show: false }, labelLine: { show: false },
+                            data: labels.map(function (l, i) { return { name: l, value: valeurs[i] }; })
+                        }]
+                    });
+                    window.addEventListener('resize', function () { c.resize(); });
+                }
+
+                // 3. Pie Label Align (ECharts) — recouvrements par mode de règlement
+                var elModes = document.querySelector('.echart-pie-modes-align');
+                if (elModes) {
+                    var labelsModes = @json($repartitions['modes_reglement']['labels']);
+                    var montantsModes = @json($repartitions['modes_reglement']['montants']);
+                    var couleursModes = ['#2c7be5', '#e63757', '#00d27a', '#27bcfd', '#f5803e', '#748194'];
+
+                    var m = echarts.init(elModes);
+                    m.setOption({
+                        tooltip: {
+                            trigger: 'item', padding: [7, 10],
+                            backgroundColor: '#fff', borderColor: '#d8e2ef', borderWidth: 1,
+                            textStyle: { color: '#5e6e82' }, transitionDuration: 0,
+                            formatter: function (p) { return p.name + ' : <strong>' + fmt.format(p.value) + ' FCFA</strong> (' + p.percent + '%)'; }
+                        },
+                        series: [{
+                            type: 'pie',
+                            radius: window.innerWidth < 530 ? '45%' : '60%',
+                            center: ['50%', '50%'],
+                            left: '5%', right: '5%', top: 0, bottom: 0,
+                            data: labelsModes.map(function (l, i) {
+                                return { name: l, value: montantsModes[i], itemStyle: { color: couleursModes[i % couleursModes.length] } };
+                            }),
+                            label: {
+                                position: 'outer', alignTo: 'labelLine', bleedMargin: 5,
+                                color: '#748194', fontSize: 13, formatter: '{b}'
+                            }
+                        }]
+                    });
+                    window.addEventListener('resize', function () {
+                        m.setOption({ series: [{ radius: window.innerWidth < 530 ? '45%' : '60%' }] });
+                        m.resize();
+                    });
+                }
+
+                // 4. Anneau — contribuables PP / PM
+                donut('.echart-kpi-personnes',
+                    ['Personnes physiques', 'Personnes morales'],
+                    [{{ $repartitions['personnes']['physiques'] }}, {{ $repartitions['personnes']['morales'] }}],
+                    false);
+            })();
+        </script>
+
+        {{-- Émissions liquidées des 12 derniers mois (barres) --}}
+        <script>
+            (function () {
+                var el = document.querySelector('.echart-emissions-12-mois');
+                if (!el || typeof echarts === 'undefined') return;
+
+                var labels = @json($emissions['labels']);
+                var montants = @json($emissions['montants']);
+                var fmt = new Intl.NumberFormat('fr-FR');
+
+                var chart = echarts.init(el);
+                chart.setOption({
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: { type: 'shadow' },
+                        formatter: function (params) {
+                            var p = params[0];
+                            return p.axisValue + '<br/><strong>' + fmt.format(p.data) + ' FCFA</strong>';
+                        }
+                    },
+                    grid: { left: '2%', right: '3%', top: '10%', bottom: '3%', containLabel: true },
+                    xAxis: {
+                        type: 'category',
+                        data: labels,
+                        axisLine: { lineStyle: { color: 'rgba(115,129,148,0.3)' } },
+                        axisTick: { show: false },
+                        axisLabel: { color: '#748194', fontSize: 11 }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        splitLine: { lineStyle: { color: 'rgba(115,129,148,0.15)' } },
+                        axisLabel: {
+                            color: '#748194', fontSize: 11,
+                            formatter: function (v) {
+                                return new Intl.NumberFormat('fr-FR', { notation: 'compact' }).format(v);
+                            }
+                        }
+                    },
+                    series: [{
+                        type: 'bar',
+                        data: montants,
+                        barWidth: '55%',
+                        itemStyle: {
+                            borderRadius: [3, 3, 0, 0],
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: '#2c7be5' },
+                                { offset: 1, color: '#27bcfd' }
+                            ])
+                        }
+                    }]
+                });
+
+                window.addEventListener('resize', function () { chart.resize(); });
+            })();
+        </script>
+    @endpush
 </x-app-layout>

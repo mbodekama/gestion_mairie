@@ -55,7 +55,9 @@ composer.json
 - Logique métier dans des **classes Service**, jamais dans les vues, composants Livewire ou Filament Resources.
 - Validation systématique des entrées via **Form Requests**.
 - Respecter les conventions Laravel (nommage, structure), code et commentaires métier en français.
-- Référentiels et données de démarrage via **seeders** dédiés.
+- Référentiels et données de démarrage via **seeders** dédiés. Distinguer
+  **essentiels** (`ProductionSeeder`) et **démo** (`database/seeders/Demo/`) —
+  voir `docs/convention-seeders.md`.
 
 ## Sécurité — à respecter systématiquement
 

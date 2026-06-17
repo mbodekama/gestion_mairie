@@ -1,41 +1,23 @@
 <?php
 
-namespace Database\Seeders;
+namespace Database\Seeders\Demo;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Données de DÉMONSTRATION : contribuables fictifs (PP et PM).
+ * Ne pas charger en exploitation 0 — réservé aux environnements de test/démo.
+ *
+ * Prérequis (référentiels essentiels) chargés en amont : pays / nationalite /
+ * forme_juridique / regime_imposition (seeders de référentiel) et collectivite
+ * (CollectiviteSeeder).
+ */
 class ContribuableSeeder extends Seeder
 {
     public function run(): void
     {
-        // ── 1. Prérequis : nationalités et collectivité ───────────────────────
-        // pays / type_collectivite / forme_juridique / regime_imposition
-        // sont gérés par fiscct_seed_referentiel.sql — ne pas dupliquer ici.
-
-        DB::table('nationalite')->insertOrIgnore([
-            ['code' => 'CIV', 'libelle' => 'Ivoirienne', 'pays_id' => DB::table('pays')->where('code', 'CIV')->value('id')],
-            ['code' => 'FRA', 'libelle' => 'Française',  'pays_id' => DB::table('pays')->where('code', 'FRA')->value('id')],
-            ['code' => 'SEN', 'libelle' => 'Sénégalaise','pays_id' => DB::table('pays')->where('code', 'SEN')->value('id')],
-        ]);
-
-        DB::table('collectivite')->insertOrIgnore([
-            [
-                'code'                 => 'ABJ',
-                'libelle'              => 'Mairie d\'Abidjan',
-                'type_collectivite_id' => DB::table('type_collectivite')->where('code', 'MRE')->value('id'),
-                'active'               => true,
-                'created_at'           => now(),
-                'updated_at'           => now(),
-            ],
-        ]);
-
-        // Poste de collecte (recette) — requis par les règlements (reglement_taxe.recette_id NOT NULL)
-        DB::table('recette')->insertOrIgnore([
-            ['code' => 'R01', 'libelle' => 'Recette principale'],
-        ]);
-
-        // ── 2. Raccourcis d'IDs ───────────────────────────────────────────────
+        // ── 1. Raccourcis d'IDs ───────────────────────────────────────────────
 
         $collectiviteId   = DB::table('collectivite')->where('code', 'ABJ')->value('id');
         $nationaliteCiv   = DB::table('nationalite')->where('code', 'CIV')->value('id');
@@ -49,7 +31,7 @@ class ContribuableSeeder extends Seeder
         $regimeRni        = DB::table('regime_imposition')->where('code', 'RNI')->value('id');
         $regimeMicro      = DB::table('regime_imposition')->where('code', 'RME')->value('id');
 
-        // ── 3. Contribuables ─────────────────────────────────────────────────
+        // ── 2. Contribuables ─────────────────────────────────────────────────
 
         $contribuables = [
             // ── Personnes physiques ──

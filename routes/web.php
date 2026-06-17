@@ -34,8 +34,43 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
+Route::get('/dashboard', function (\App\Services\TableauBordService $tableauBord) {
+    // Mono-mairie aujourd'hui : on cible la collectivité active. Lorsqu'un lien
+    // utilisateur ↔ collectivité existera, le remplacer ici par celui de l'agent connecté.
+    $collectiviteId = \Illuminate\Support\Facades\DB::table('collectivite')
+        ->where('active', true)
+        ->value('id');
+
+    $recouvrements = $collectiviteId
+        ? $tableauBord->recouvrementsDouzeDerniersMois((int) $collectiviteId)
+        : ['labels' => [], 'montants' => [], 'total' => 0.0, 'mois_courant' => 0.0, 'mois_precedent' => 0.0];
+
+    $indicateurs = $collectiviteId
+        ? $tableauBord->indicateursCles((int) $collectiviteId)
+        : [
+            'contribuables_actifs' => 0, 'etablissements_actifs' => 0, 'exercice_annee' => null,
+            'montant_emis' => 0.0, 'montant_recouvre' => 0.0, 'reste_a_recouvrer' => 0.0,
+            'taux_recouvrement' => 0.0, 'nb_emissions' => 0,
+        ];
+
+    $repartitions = $collectiviteId
+        ? $tableauBord->repartitions((int) $collectiviteId)
+        : [
+            'objectif' => ['montant' => 0.0, 'recouvre' => 0.0, 'taux' => 0.0],
+            'natures_taxe' => ['labels' => [], 'montants' => []],
+            'modes_reglement' => ['labels' => [], 'montants' => []],
+            'personnes' => ['physiques' => 0, 'morales' => 0],
+        ];
+
+    $topContribuables = $collectiviteId
+        ? $tableauBord->topContribuables((int) $collectiviteId)
+        : [];
+
+    $emissions = $collectiviteId
+        ? $tableauBord->emissionsDouzeDerniersMois((int) $collectiviteId)
+        : ['labels' => [], 'montants' => [], 'total' => 0.0, 'mois_courant' => 0.0, 'mois_precedent' => 0.0];
+
+    return view('dashboard', compact('recouvrements', 'indicateurs', 'repartitions', 'topContribuables', 'emissions'));
 })->middleware(['auth', 'verified', 'session.lock'])->name('dashboard');
 
 Route::middleware(['auth', 'session.lock'])->group(function () {
