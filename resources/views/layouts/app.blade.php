@@ -74,7 +74,6 @@
                     </div>
                     <a class="navbar-brand" href="{{ route('dashboard') }}">
                         <div class="d-flex align-items-center py-3">
-                            <img class="me-2" src="{{ asset('assets/img/icons/spot-illustrations/falcon.png') }}" alt="" width="40" />
                             <span class="font-sans-serif text-primary">{{ config('app.name', 'Laravel') }}</span>
                         </div>
                     </a>
@@ -301,13 +300,42 @@
                                     </ul>
                                 </div>
 
-                                <a class="nav-link {{ request()->routeIs('pilotage.rapports.*') ? 'active' : '' }}"
-                                   href="{{ route('pilotage.rapports.index') }}">
+                                @php
+                                    $etatsActif = request()->routeIs('pilotage.rapports.*')
+                                        || request()->routeIs('pilotage.statistiques.*');
+                                @endphp
+                                <a class="nav-link dropdown-indicator {{ $etatsActif ? '' : 'collapsed' }}"
+                                   href="#etatsCollapse"
+                                   data-bs-toggle="collapse"
+                                   aria-expanded="{{ $etatsActif ? 'true' : 'false' }}"
+                                   aria-controls="etatsCollapse">
                                     <div class="d-flex align-items-center">
-                                        <span class="nav-link-icon"><span class="fas fa-file-pdf"></span></span>
-                                        <span class="nav-link-text ps-1">Rapports &amp; éditions PDF</span>
+                                        <span class="nav-link-icon"><span class="fas fa-chart-pie"></span></span>
+                                        <span class="nav-link-text ps-1">États &amp; Statistiques</span>
                                     </div>
                                 </a>
+                                <div class="collapse {{ $etatsActif ? 'show' : '' }}" id="etatsCollapse">
+                                    <ul class="nav flex-column ms-3">
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ request()->routeIs('pilotage.rapports.*') ? 'active' : '' }}"
+                                               href="{{ route('pilotage.rapports.index') }}">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="nav-link-icon"><span class="fas fa-file-pdf"></span></span>
+                                                    <span class="nav-link-text ps-1">Édition d'états</span>
+                                                </div>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ request()->routeIs('pilotage.statistiques.*') ? 'active' : '' }}"
+                                               href="{{ route('pilotage.statistiques.index') }}">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="nav-link-icon"><span class="fas fa-chart-line"></span></span>
+                                                    <span class="nav-link-text ps-1">Statistiques mairie</span>
+                                                </div>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
                             </li>
 
                             {{-- ===== Sécurité ===== --}}
@@ -638,6 +666,8 @@
                 @endisset
 
                 <x-flash />
+
+                <x-toast-bienvenue />
 
                 {{ $slot }}
 

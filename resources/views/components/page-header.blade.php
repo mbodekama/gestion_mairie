@@ -4,10 +4,10 @@
     <div class="col-12">
         <div class="card">
             <div class="card-body">
-                <h4 class="mb-1">{{ $titre }}</h4>
-                <p class="mb-0 text-600">
-                    {{ $sousTitre ?? __('Bienvenue, :name !', ['name' => auth()->user()->name]) }}
-                </p>
+                <h4 class="mb-{{ filled($sousTitre) ? '1' : '0' }}">{{ $titre }}</h4>
+                @if (filled($sousTitre))
+                    <p class="mb-0 text-600">{{ $sousTitre }}</p>
+                @endif
             </div>
         </div>
     </div>

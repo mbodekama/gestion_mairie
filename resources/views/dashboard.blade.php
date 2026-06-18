@@ -1,5 +1,5 @@
 <x-app-layout :title="__('Dashboard')">
-    <x-page-header titre="Tableau de bord" :sous-titre="__('Bienvenue, :name ! Voici un aperçu de l\'activité fiscale.', ['name' => auth()->user()->name])" />
+    <x-page-header titre="Tableau de bord" :sous-titre="__('Voici un aperçu de l\'activité fiscale.')" />
 
     {{-- Recouvrements des 12 derniers mois (collectivité connectée) --}}
     <div class="row g-3 mb-3">

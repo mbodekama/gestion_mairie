@@ -43,6 +43,7 @@ class VerrouillageController extends Controller
         } catch (\Throwable) {
         }
 
-        return redirect()->route('dashboard');
+        return redirect()->route('dashboard')
+            ->with('toast_bienvenue', __('Bon retour, :name !', ['name' => $request->user()->name]));
     }
 }

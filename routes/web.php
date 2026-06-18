@@ -25,6 +25,7 @@ use App\Http\Controllers\Administration\ParametreController;
 use App\Http\Controllers\Pilotage\ObjectifController;
 use App\Http\Controllers\Pilotage\ObligationController;
 use App\Http\Controllers\Pilotage\RapportController;
+use App\Http\Controllers\Pilotage\StatistiqueController;
 use App\Http\Controllers\Referentiel\ActiviteController as ReferentielActiviteController;
 use App\Http\Controllers\Referentiel\ParametrageController as ReferentielParametrageController;
 use App\Http\Controllers\Referentiel\TerritorialController;
@@ -188,6 +189,8 @@ Route::middleware(['auth', 'session.lock'])->group(function () {
 
         Route::get('rapports', [RapportController::class, 'index'])->name('rapports.index');
         Route::get('rapports/exonerations', [RapportController::class, 'exonerations'])->name('rapports.exonerations');
+
+        Route::get('statistiques', [StatistiqueController::class, 'index'])->name('statistiques.index');
     });
 
     // ===== Administration =====

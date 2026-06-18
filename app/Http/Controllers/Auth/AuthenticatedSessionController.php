@@ -27,7 +27,8 @@ class AuthenticatedSessionController extends Controller
 
         $this->journalisation->enregistrer(JournalisationService::CONNEXION, $request);
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->intended(route('dashboard', absolute: false))
+            ->with('toast_bienvenue', __('Bienvenue, :name !', ['name' => $request->user()->name]));
     }
 
     public function destroy(Request $request): RedirectResponse
