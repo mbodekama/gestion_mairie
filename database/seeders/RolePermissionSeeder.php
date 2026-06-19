@@ -18,6 +18,8 @@ class RolePermissionSeeder extends Seeder
         $permissions = [
             // Contribuables
             'CONTRIB_CONSULTER', 'CONTRIB_CREER', 'CONTRIB_MODIFIER', 'CONTRIB_SUPPRIMER',
+            // Envoi groupé d'e-mails aux contribuables
+            'CONTRIB_MAILS',
             // Établissements
             'ETAB_CONSULTER', 'ETAB_CREER', 'ETAB_MODIFIER', 'ETAB_SUPPRIMER',
             // Dirigeants
@@ -100,7 +102,7 @@ class RolePermissionSeeder extends Seeder
 
         // AGENT_RECENS : recensement contribuables / établissements / dirigeants
         Role::findOrCreate('AGENT_RECENS')->syncPermissions([
-            'CONTRIB_CONSULTER', 'CONTRIB_CREER', 'CONTRIB_MODIFIER',
+            'CONTRIB_CONSULTER', 'CONTRIB_CREER', 'CONTRIB_MODIFIER', 'CONTRIB_MAILS',
             'ETAB_CONSULTER', 'ETAB_CREER', 'ETAB_MODIFIER',
             'DIRIG_CONSULTER', 'DIRIG_CREER', 'DIRIG_MODIFIER',
             'ACTIVITE_CONSULTER', 'TERRITOIRE_CONSULTER',

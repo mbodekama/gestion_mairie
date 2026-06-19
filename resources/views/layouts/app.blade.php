@@ -117,13 +117,23 @@
                                 <div class="collapse {{ $gestionContribActif ? 'show' : '' }}" id="gestionContribCollapse">
                                     <ul class="nav flex-column ms-3">
                                         <li class="nav-item">
-                                            <a class="nav-link {{ request()->routeIs('contribuables.*') ? 'active' : '' }}" href="{{ route('contribuables.index') }}">
+                                            <a class="nav-link {{ request()->routeIs('contribuables.*') && ! request()->routeIs('contribuables.mails-groupes.*') ? 'active' : '' }}" href="{{ route('contribuables.index') }}">
                                                 <div class="d-flex align-items-center">
                                                     <span class="nav-link-icon"><span class="fas fa-user"></span></span>
                                                     <span class="nav-link-text ps-1">Contribuables</span>
                                                 </div>
                                             </a>
                                         </li>
+                                        @can('CONTRIB_MAILS')
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ request()->routeIs('contribuables.mails-groupes.*') ? 'active' : '' }}" href="{{ route('contribuables.mails-groupes.index') }}">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="nav-link-icon"><span class="fas fa-envelope"></span></span>
+                                                    <span class="nav-link-text ps-1">Mails groupé</span>
+                                                </div>
+                                            </a>
+                                        </li>
+                                        @endcan
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('etablissements.*') ? 'active' : '' }}" href="{{ route('etablissements.index') }}">
                                                 <div class="d-flex align-items-center">

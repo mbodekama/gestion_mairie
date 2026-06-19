@@ -41,6 +41,40 @@ class ContribuableFiltreForm extends FiltreDataForm
         );
     }
 
+    /**
+     * Snapshot sérialisable des critères (pour persistance d'une campagne).
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        return [
+            'numero_identifiant'   => $this->numeroIdentifiant,
+            'nom'                  => $this->nom,
+            'type_personne'        => $this->typePersonne,
+            'statut'               => $this->statut,
+            'regime_imposition_id' => $this->regimeImpositionId,
+        ];
+    }
+
+    /**
+     * Reconstruit le filtre depuis un snapshot persisté (sans requête HTTP).
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public static function fromArray(array $data): static
+    {
+        $regime = $data['regime_imposition_id'] ?? null;
+
+        return new static(
+            numeroIdentifiant:  $data['numero_identifiant'] ?? null,
+            nom:                $data['nom'] ?? null,
+            typePersonne:       $data['type_personne'] ?? null,
+            statut:             $data['statut'] ?? null,
+            regimeImpositionId: filled($regime) ? (int) $regime : null,
+        );
+    }
+
     public function appliquer(Builder $query): Builder
     {
         if (filled($this->numeroIdentifiant)) {

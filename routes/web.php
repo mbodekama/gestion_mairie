@@ -12,6 +12,7 @@ use App\Http\Controllers\EtablissementController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ExerciceFiscalController;
 use App\Http\Controllers\ExonerationController;
+use App\Http\Controllers\MailGroupeController;
 use App\Http\Controllers\Parametrage\BaremeTaxeController;
 use App\Http\Controllers\Parametrage\RegimeImpositionController;
 use App\Http\Controllers\Parametrage\StatutContribuableController;
@@ -84,6 +85,20 @@ Route::middleware(['auth', 'session.lock'])->group(function () {
     Route::post('documents', [DocumentController::class, 'store'])->name('documents.store');
     Route::get('documents/{document}/telecharger', [DocumentController::class, 'telecharger'])->name('documents.telecharger');
     Route::delete('documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
+
+    // ===== Mails groupés aux contribuables =====
+    // Déclarées avant la resource pour que « contribuables/mails-groupes » ne soit
+    // pas capturé par la route show « contribuables/{contribuable} ».
+    Route::get('contribuables/mails-groupes', [MailGroupeController::class, 'index'])
+         ->middleware('can:CONTRIB_MAILS')->name('contribuables.mails-groupes.index');
+    Route::post('contribuables/mails-groupes/recherche', [MailGroupeController::class, 'index'])
+         ->middleware('can:CONTRIB_MAILS')->name('contribuables.mails-groupes.recherche');
+    Route::get('contribuables/mails-groupes/nouvelle', [MailGroupeController::class, 'create'])
+         ->middleware('can:CONTRIB_MAILS')->name('contribuables.mails-groupes.create');
+    Route::post('contribuables/mails-groupes/nouvelle', [MailGroupeController::class, 'create'])
+         ->middleware('can:CONTRIB_MAILS')->name('contribuables.mails-groupes.filtre');
+    Route::post('contribuables/mails-groupes', [MailGroupeController::class, 'store'])
+         ->middleware('can:CONTRIB_MAILS')->name('contribuables.mails-groupes.store');
 
     // Resources (GET index + toutes les autres actions)
     Route::resource('contribuables',     ContribuableController::class);
