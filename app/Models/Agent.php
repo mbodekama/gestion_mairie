@@ -45,11 +45,6 @@ class Agent extends Model
         return $this->hasMany(Agent::class, 'superieur_id');
     }
 
-    public function utilisateurs(): HasMany
-    {
-        return $this->hasMany(Utilisateur::class);
-    }
-
     public function dossiers(): HasMany
     {
         return $this->hasMany(Dossier::class, 'agent_retrait_id');

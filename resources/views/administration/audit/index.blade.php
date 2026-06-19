@@ -73,7 +73,7 @@
                                     @endphp
                                     <span class="badge {{ $badge }}">{{ $audit->action }}</span>
                                 </td>
-                                <td>{{ $audit->utilisateur?->login ?? '—' }}</td>
+                                <td>{{ $audit->utilisateur?->email ?? '—' }}</td>
                                 <td class="text-center">
                                     <button type="button" class="btn btn-sm btn-outline-secondary"
                                             data-bs-toggle="tooltip"

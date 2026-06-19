@@ -54,7 +54,7 @@ class AuditController extends Controller
                             $a->table_cible ?? '',
                             $a->cle_ligne ?? '',
                             $a->action ?? '',
-                            $a->utilisateur?->login ?? '',
+                            $a->utilisateur?->email ?? '',
                         ]));
                     }
                 });

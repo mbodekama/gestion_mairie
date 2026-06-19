@@ -52,7 +52,6 @@
                                 :sort-actuel="$sortActuel" :dir-actuelle="$dirActuelle" />
                             <x-datatable.th-tri colonne="service_id" label="Service"
                                 :sort-actuel="$sortActuel" :dir-actuelle="$dirActuelle" />
-                            <th class="text-center">Compte</th>
                             <x-datatable.th-tri colonne="actif" label="Statut" class="text-center"
                                 :sort-actuel="$sortActuel" :dir-actuelle="$dirActuelle" />
                             <th>Actions</th>
@@ -75,15 +74,6 @@
                                 <td>{{ $agent->fonctionAgent?->libelle ?? '—' }}</td>
                                 <td>{{ $agent->gradeAgent?->libelle ?? '—' }}</td>
                                 <td>{{ $agent->service?->libelle ?? '—' }}</td>
-                                <td class="text-center">
-                                    @if ($agent->utilisateurs->isNotEmpty())
-                                        <span class="badge bg-success">
-                                            <span class="fas fa-check me-1"></span>Actif
-                                        </span>
-                                    @else
-                                        <span class="badge bg-light text-muted border">Aucun</span>
-                                    @endif
-                                </td>
                                 <td class="text-center">
                                     @if ($agent->actif)
                                         <span class="badge bg-success">Actif</span>

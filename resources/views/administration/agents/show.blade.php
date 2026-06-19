@@ -61,27 +61,9 @@
     </div>
 
     <div class="col-lg-5">
-        {{-- Comptes utilisateurs --}}
-        <div class="card mb-3 card-section">
-            <div class="card-header py-3"><h5 class="mb-0 d-flex align-items-center"><span class="num-section">02</span><span class="fas fa-user-shield me-2 text-primary"></span>Compte utilisateur</h5></div>
-            <div class="card-body fs-9">
-                @forelse ($agent->utilisateurs as $u)
-                    <div class="d-flex justify-content-between align-items-center {{ !$loop->last ? 'border-bottom pb-2 mb-2' : '' }}">
-                        <span><span class="fas fa-user me-1 text-muted"></span>{{ $u->login ?? $u->email ?? '—' }}</span>
-                        <span class="badge bg-light text-dark border">{{ $u->statut ?? '' }}</span>
-                    </div>
-                @empty
-                    <span class="text-muted">Aucun compte rattaché.</span>
-                @endforelse
-            </div>
-            <div class="card-footer d-flex justify-content-end align-items-center py-2 fs-9 text-600">
-                <span class="fas fa-user-shield me-1"></span>{{ $agent->utilisateurs->count() }} compte(s)
-            </div>
-        </div>
-
         {{-- Subordonnés --}}
         <div class="card card-section">
-            <div class="card-header py-3"><h5 class="mb-0 d-flex align-items-center"><span class="num-section">03</span><span class="fas fa-users me-2 text-primary"></span>Subordonnés
+            <div class="card-header py-3"><h5 class="mb-0 d-flex align-items-center"><span class="num-section">02</span><span class="fas fa-users me-2 text-primary"></span>Subordonnés
                 <span class="badge bg-secondary ms-1">{{ $agent->subordonnes->count() }}</span></h5></div>
             <div class="card-body fs-9">
                 @forelse ($agent->subordonnes as $sub)
@@ -104,12 +86,12 @@
 <div class="card mb-4 border-danger">
     <div class="card-body d-flex justify-content-between align-items-center">
         <div class="fs-9 text-muted">
-            La suppression est définitive. Un agent rattaché à un compte utilisateur ne peut être supprimé.
+            La suppression est définitive.
         </div>
         <form method="POST" action="{{ route('agents.destroy', $agent) }}"
               onsubmit="return confirm('Supprimer définitivement l\'agent {{ $agent->matricule }} ?')">
             @csrf @method('DELETE')
-            <button type="submit" class="btn btn-outline-danger" {{ $agent->utilisateurs->isNotEmpty() ? 'disabled' : '' }}>
+            <button type="submit" class="btn btn-outline-danger">
                 <span class="fas fa-trash me-1"></span>Supprimer l'agent
             </button>
         </form>
