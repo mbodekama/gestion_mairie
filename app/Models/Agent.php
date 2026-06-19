@@ -47,7 +47,7 @@ class Agent extends Model
 
     public function utilisateurs(): HasMany
     {
-        return $this->hasMany(Utilisateur::class);
+        return $this->hasMany(User::class);
     }
 
     public function dossiers(): HasMany

@@ -9,6 +9,7 @@ use App\Http\Controllers\RedressementController;
 use App\Http\Controllers\DossierController;
 use App\Http\Controllers\EmissionTaxeController;
 use App\Http\Controllers\EtablissementController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ExerciceFiscalController;
 use App\Http\Controllers\ExonerationController;
 use App\Http\Controllers\Parametrage\BaremeTaxeController;
@@ -75,6 +76,10 @@ Route::get('/dashboard', function (\App\Services\TableauBordService $tableauBord
 })->middleware(['auth', 'verified', 'session.lock'])->name('dashboard');
 
 Route::middleware(['auth', 'session.lock'])->group(function () {
+    // Notifications in-app (cloche du bandeau)
+    Route::get('notifications/{id}/lire', [NotificationController::class, 'lire'])->name('notifications.lire');
+    Route::post('notifications/tout-lire', [NotificationController::class, 'toutLire'])->name('notifications.tout-lire');
+
     // Pièces jointes (transversal à tous les modèles)
     Route::post('documents', [DocumentController::class, 'store'])->name('documents.store');
     Route::get('documents/{document}/telecharger', [DocumentController::class, 'telecharger'])->name('documents.telecharger');
@@ -191,6 +196,8 @@ Route::middleware(['auth', 'session.lock'])->group(function () {
         Route::get('rapports/exonerations', [RapportController::class, 'exonerations'])->name('rapports.exonerations');
 
         Route::get('statistiques', [StatistiqueController::class, 'index'])->name('statistiques.index');
+        Route::get('statistiques/calibree', [StatistiqueController::class, 'calibree'])->name('statistiques.calibree');
+        Route::post('statistiques/calibree', [StatistiqueController::class, 'calibreeGenerer'])->name('statistiques.calibree.generer');
     });
 
     // ===== Administration =====

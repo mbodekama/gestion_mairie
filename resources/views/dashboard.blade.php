@@ -309,16 +309,26 @@
                             trigger: 'axis', axisPointer: { type: 'shadow' },
                             formatter: function (p) { return p[0].name + '<br/><strong>' + fmt.format(p[0].value) + ' FCFA</strong>'; }
                         },
-                        grid: { left: '2%', right: '8%', top: '4%', bottom: '2%', containLabel: true },
+                        grid: { left: '2%', right: '8%', top: '8%', bottom: '2%', containLabel: true },
                         xAxis: { type: 'value', axisLabel: { show: false }, axisLine: { show: false }, splitLine: { show: false } },
                         yAxis: {
                             type: 'category', data: labelsN.slice().reverse(),
                             axisTick: { show: false }, axisLine: { show: false },
-                            axisLabel: { color: '#748194', fontSize: 11 }
+                            axisLabel: { show: false }
                         },
                         series: [{
-                            type: 'bar', data: dataN.slice().reverse(), barWidth: '55%',
-                            itemStyle: { color: '#2c7be5', borderRadius: [0, 3, 3, 0] }
+                            type: 'bar', data: dataN.slice().reverse(), barWidth: '45%', barCategoryGap: '45%',
+                            itemStyle: { color: '#2c7be5', borderRadius: [0, 3, 3, 0] },
+                            // Nature de l'impôt affichée au-dessus de sa barre (libère la largeur au texte)
+                            label: {
+                                show: true,
+                                position: [0, -18],
+                                align: 'left',
+                                color: '#5e6e82',
+                                fontSize: 13,
+                                fontWeight: 600,
+                                formatter: function (p) { return p.name; }
+                            }
                         }]
                     });
                     window.addEventListener('resize', function () { n.resize(); });

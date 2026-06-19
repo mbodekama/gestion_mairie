@@ -67,8 +67,8 @@
             <div class="card-body fs-9">
                 @forelse ($agent->utilisateurs as $u)
                     <div class="d-flex justify-content-between align-items-center {{ !$loop->last ? 'border-bottom pb-2 mb-2' : '' }}">
-                        <span><span class="fas fa-user me-1 text-muted"></span>{{ $u->login ?? $u->email ?? '—' }}</span>
-                        <span class="badge bg-light text-dark border">{{ $u->statut ?? '' }}</span>
+                        <span><span class="fas fa-user me-1 text-muted"></span>{{ $u->name ?? '—' }}</span>
+                        <span class="badge bg-light text-dark border">{{ $u->email }}</span>
                     </div>
                 @empty
                     <span class="text-muted">Aucun compte rattaché.</span>
