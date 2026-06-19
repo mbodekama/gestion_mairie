@@ -14,9 +14,11 @@ use App\Models\Periodicite;
 use App\Models\Redressement;
 use App\Models\TransitionControle;
 use App\Models\User;
+use App\Notifications\TransitionControleNotification;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 /**
  * Pilote le workflow du contrôle fiscal : valide les transitions autorisées
@@ -87,7 +89,7 @@ class ControleWorkflowService
             );
         }
 
-        return DB::transaction(function () use ($controle, $etatCible, $transition, $user, $payload, $motif) {
+        $controle = DB::transaction(function () use ($controle, $etatCible, $transition, $user, $payload, $motif) {
             $etatSourceId = $controle->etat_controle_id;
 
             // Effet métier de la transition
@@ -114,6 +116,34 @@ class ControleWorkflowService
 
             return $controle->refresh();
         });
+
+        // Notification in-app (mise en file Redis) une fois le mouvement validé.
+        $this->notifierTransition($controle, $etatCible, $user);
+
+        return $controle;
+    }
+
+    /**
+     * Notifie les agents concernés du franchissement d'une transition :
+     * les comptes de l'agent instructeur et les superviseurs de contrôle,
+     * en excluant l'acteur de la transition.
+     */
+    private function notifierTransition(ControleFiscal $controle, EtatControle $etatCible, User $acteur): void
+    {
+        $controle->loadMissing('agentInstructeur.utilisateurs');
+
+        $destinataires = collect($controle->agentInstructeur?->utilisateurs ?? [])
+            ->merge(User::role('SUPERVISEUR_CONTROLE')->get())
+            ->unique('id')
+            ->reject(fn (User $u) => $u->id === $acteur->id)
+            ->values();
+
+        if ($destinataires->isNotEmpty()) {
+            Notification::send(
+                $destinataires,
+                new TransitionControleNotification($controle, $etatCible, $acteur->name),
+            );
+        }
     }
 
     /** Aiguille vers le traitement de l'effet déclaré sur la transition. */

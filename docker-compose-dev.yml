@@ -73,6 +73,25 @@ services:
     networks:
       - sys_gestion_network
 
+  sys_gestion_worker:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+      args:
+        WWWUSER: ${WWWUSER:-1000}
+        WWWGROUP: ${WWWGROUP:-1000}
+    container_name: sys_gestion_worker
+    restart: unless-stopped
+    working_dir: /var/www
+    command: php artisan queue:work redis --tries=3 --backoff=10 --max-time=3600 --sleep=3
+    volumes:
+      - ./:/var/www
+    networks:
+      - sys_gestion_network
+    depends_on:
+      - sys_gestion_postgres
+      - sys_gestion_redis
+
 networks:
   sys_gestion_network:
     driver: bridge
