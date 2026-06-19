@@ -326,11 +326,20 @@
                                             </a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link {{ request()->routeIs('pilotage.statistiques.*') ? 'active' : '' }}"
+                                            <a class="nav-link {{ request()->routeIs('pilotage.statistiques.index') ? 'active' : '' }}"
                                                href="{{ route('pilotage.statistiques.index') }}">
                                                 <div class="d-flex align-items-center">
                                                     <span class="nav-link-icon"><span class="fas fa-chart-line"></span></span>
                                                     <span class="nav-link-text ps-1">Statistiques mairie</span>
+                                                </div>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ request()->routeIs('pilotage.statistiques.calibree') ? 'active' : '' }}"
+                                               href="{{ route('pilotage.statistiques.calibree') }}">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="nav-link-icon"><span class="fas fa-sliders-h"></span></span>
+                                                    <span class="nav-link-text ps-1">Statistique calibrée</span>
                                                 </div>
                                             </a>
                                         </li>
@@ -526,9 +535,13 @@
                         </li>
 
                         {{-- Notifications --}}
+                        @php($notifsNonLues = auth()->user()?->unreadNotifications ?? collect())
                         <li class="nav-item dropdown">
-                            <a class="nav-link notification-indicator notification-indicator-primary px-0 fa-icon-wait" id="navbarDropdownNotification" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-hide-on-body-scroll="data-hide-on-body-scroll">
+                            <a class="nav-link px-0 fa-icon-wait @if($notifsNonLues->isNotEmpty()) notification-indicator notification-indicator-primary notification-indicator-fill @endif" id="navbarDropdownNotification" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-hide-on-body-scroll="data-hide-on-body-scroll">
                                 <span class="fas fa-bell" data-fa-transform="shrink-6" style="font-size: 33px;"></span>
+                                @if($notifsNonLues->isNotEmpty())
+                                    <span class="notification-indicator-number">{{ $notifsNonLues->count() }}</span>
+                                @endif
                             </a>
                             <div class="dropdown-menu dropdown-caret dropdown-menu-end dropdown-menu-card dropdown-menu-notification dropdown-caret-bg" aria-labelledby="navbarDropdownNotification">
                                 <div class="card card-notification shadow-none">
@@ -537,42 +550,37 @@
                                             <div class="col-auto">
                                                 <h6 class="card-header-title mb-0">{{ __('Notifications') }}</h6>
                                             </div>
-                                            <div class="col-auto ps-0 ps-sm-3"><a class="card-link fw-normal" href="#!">{{ __('Mark all as read') }}</a></div>
+                                            @if($notifsNonLues->isNotEmpty())
+                                                <div class="col-auto ps-0 ps-sm-3">
+                                                    <form method="POST" action="{{ route('notifications.tout-lire') }}">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-link card-link fw-normal p-0 border-0">{{ __('Tout marquer comme lu') }}</button>
+                                                    </form>
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
                                     <div class="scrollbar-overlay" style="max-height:19rem">
                                         <div class="list-group list-group-flush fw-normal fs-10">
-                                            <div class="list-group-title border-bottom">{{ __('NEW') }}</div>
-                                            <div class="list-group-item">
-                                                <a class="notification notification-flush notification-unread" href="#!">
-                                                    <div class="notification-avatar">
-                                                        <div class="avatar avatar-2xl me-3">
-                                                            <div class="avatar-name rounded-circle bg-primary-subtle text-primary"><span>{{ Str::of(auth()->user()->name)->substr(0, 1)->upper() }}</span></div>
+                                            @forelse($notifsNonLues as $notif)
+                                                <div class="list-group-item">
+                                                    <a class="notification notification-flush notification-unread" href="{{ route('notifications.lire', $notif->id) }}">
+                                                        <div class="notification-avatar">
+                                                            <div class="avatar avatar-2xl me-3">
+                                                                <div class="avatar-name rounded-circle bg-primary-subtle text-primary"><span class="fas {{ $notif->data['icone'] ?? 'fa-bell' }}"></span></div>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    <div class="notification-body">
-                                                        <p class="mb-1">{{ __('Your profile has been updated successfully.') }}</p>
-                                                        <span class="notification-time"><span class="me-2" role="img" aria-label="Emoji">✅</span>{{ __('Just now') }}</span>
-                                                    </div>
-                                                </a>
-                                            </div>
-                                            <div class="list-group-title border-bottom">{{ __('EARLIER') }}</div>
-                                            <div class="list-group-item">
-                                                <a class="border-bottom-0 notification notification-flush" href="#!">
-                                                    <div class="notification-avatar">
-                                                        <div class="avatar avatar-xl me-3">
-                                                            <div class="avatar-name rounded-circle bg-200 text-700"><span class="fas fa-bell"></span></div>
+                                                        <div class="notification-body">
+                                                            <p class="mb-1">{{ $notif->data['message'] ?? __('Notification') }}</p>
+                                                            <span class="notification-time">{{ $notif->created_at?->diffForHumans() }}</span>
                                                         </div>
-                                                    </div>
-                                                    <div class="notification-body">
-                                                        <p class="mb-1">{{ __('Welcome to :app! Take a moment to complete your profile.', ['app' => config('app.name', 'Laravel')]) }}</p>
-                                                        <span class="notification-time"><span class="me-2" role="img" aria-label="Emoji">👋</span>{{ __('A while ago') }}</span>
-                                                    </div>
-                                                </a>
-                                            </div>
+                                                    </a>
+                                                </div>
+                                            @empty
+                                                <div class="list-group-item text-center text-muted py-3">{{ __('Aucune notification') }}</div>
+                                            @endforelse
                                         </div>
                                     </div>
-                                    <div class="card-footer text-center border-top"><a class="card-link d-block" href="#!">{{ __('View all') }}</a></div>
                                 </div>
                             </div>
                         </li>
