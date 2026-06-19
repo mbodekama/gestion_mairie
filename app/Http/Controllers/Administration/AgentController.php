@@ -42,7 +42,7 @@ class AgentController extends Controller
         $filtre = AgentFiltreForm::fromRequest($request);
 
         $agents = $filtre->appliquer(
-            Agent::with(['fonctionAgent', 'gradeAgent', 'service'])
+            Agent::with(['fonctionAgent', 'gradeAgent', 'service', 'utilisateurs'])
         )->orderBy($sortActuel, $dirActuelle)->paginate(15)->withQueryString();
 
         return view('administration.agents.index', compact(
@@ -68,7 +68,7 @@ class AgentController extends Controller
 
     public function show(Agent $agent): View
     {
-        $agent->load(['fonctionAgent', 'gradeAgent', 'service', 'superieur', 'subordonnes']);
+        $agent->load(['fonctionAgent', 'gradeAgent', 'service', 'superieur', 'subordonnes', 'utilisateurs']);
 
         return view('administration.agents.show', compact('agent'));
     }
@@ -91,6 +91,11 @@ class AgentController extends Controller
 
     public function destroy(Agent $agent): RedirectResponse
     {
+        // Garde-fou : un agent rattaché à un compte utilisateur n'est pas supprimable.
+        if ($agent->utilisateurs()->exists()) {
+            return back()->with('error', 'Impossible de supprimer un agent rattaché à un compte utilisateur.');
+        }
+
         $matricule = $agent->matricule;
         $agent->delete();
 
