@@ -15,11 +15,18 @@ class Objectif extends Model
     protected $casts = [
         'montant'        => 'decimal:2',
         'montant_revise' => 'decimal:2',
+        'periode_debut'  => 'date',
+        'periode_fin'    => 'date',
         'created_at'     => 'datetime',
     ];
 
     public function collectivite(): BelongsTo
     {
         return $this->belongsTo(Collectivite::class);
+    }
+
+    public function exerciceFiscal(): BelongsTo
+    {
+        return $this->belongsTo(ExerciceFiscal::class);
     }
 }

@@ -36,7 +36,7 @@
                             <x-datatable.th-check />
                             <x-datatable.th-tri colonne="annee" label="Année" class="text-center"
                                 :sort-actuel="$sortActuel" :dir-actuelle="$dirActuelle" />
-                            <th>Collectivité</th>
+                            <th>Période couverte</th>
                             <x-datatable.th-tri colonne="montant" label="Objectif (FCFA)" class="text-end"
                                 :sort-actuel="$sortActuel" :dir-actuelle="$dirActuelle" />
                             <x-datatable.th-tri colonne="montant_revise" label="Révisé (FCFA)" class="text-end"
@@ -64,7 +64,15 @@
                                 <td class="text-center">
                                     <span class="badge bg-primary">{{ $objectif->annee }}</span>
                                 </td>
-                                <td>{{ $objectif->collectivite?->libelle ?? '—' }}</td>
+                                <td>
+                                    @if ($objectif->periode_debut && $objectif->periode_fin)
+                                        <span class="fs-9">{{ $objectif->periode_debut->format('d/m/Y') }}
+                                            <span class="text-400">→</span>
+                                            {{ $objectif->periode_fin->format('d/m/Y') }}</span>
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
                                 <td class="text-end fw-semi-bold">
                                     {{ number_format((float) $objectif->montant, 0, ',', ' ') }}
                                 </td>

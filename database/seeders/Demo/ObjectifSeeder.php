@@ -12,7 +12,8 @@ use Illuminate\Support\Facades\DB;
  * « Objectif de recouvrement » du tableau de bord.
  *
  * Valeurs indicatives — en exploitation, l'objectif est saisi via l'écran de
- * pilotage. Idempotent : contrainte unique (collectivite_id, annee) → insertOrIgnore.
+ * pilotage. Chaque objectif de démo est rattaché à l'exercice de l'année et
+ * couvre sa période complète. Idempotent via updateOrInsert.
  */
 class ObjectifSeeder extends Seeder
 {
@@ -28,15 +29,29 @@ class ObjectifSeeder extends Seeder
 
         $anneeCourante = (int) CarbonImmutable::now()->format('Y');
 
-        $lignes = [
-            ['annee' => $anneeCourante - 1, 'montant' => 2_500_000],
-            ['annee' => $anneeCourante,     'montant' => 3_000_000],
+        $montants = [
+            $anneeCourante - 1 => 2_500_000,
+            $anneeCourante     => 3_000_000,
         ];
 
-        DB::table('objectif')->insertOrIgnore(array_map(fn ($l) => [
-            'collectivite_id' => $collectiviteId,
-            'annee'           => $l['annee'],
-            'montant'         => $l['montant'],
-        ], $lignes));
+        $exercices = DB::table('exercice_fiscal')
+            ->where('collectivite_id', $collectiviteId)
+            ->whereIn('annee', array_keys($montants))
+            ->get();
+
+        foreach ($exercices as $ex) {
+            DB::table('objectif')->updateOrInsert(
+                [
+                    'collectivite_id'    => $collectiviteId,
+                    'exercice_fiscal_id' => $ex->id,
+                ],
+                [
+                    'annee'         => $ex->annee,
+                    'periode_debut' => $ex->date_debut,
+                    'periode_fin'   => $ex->date_fin,
+                    'montant'       => $montants[$ex->annee],
+                ],
+            );
+        }
     }
 }

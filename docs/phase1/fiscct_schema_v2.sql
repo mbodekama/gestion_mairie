@@ -777,15 +777,20 @@ CREATE TABLE ligne_exoneration (
 --  10. PILOTAGE ET PARAMÉTRAGE TRANSVERSE
 -- =====================================================================
 
+-- Objectif de recouvrement rattaché à un exercice fiscal et couvrant une
+-- période bornée par cet exercice. Un exercice peut porter plusieurs objectifs
+-- (périodes distinctes) : pas d'unicité sur (collectivite_id, annee).
 CREATE TABLE objectif (
-  id              bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  collectivite_id bigint NOT NULL REFERENCES collectivite(id),
-  annee           smallint NOT NULL,
-  montant         numeric(18,2) NOT NULL DEFAULT 0,
-  montant_revise  numeric(18,2),
-  created_by      bigint,
-  created_at      timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (collectivite_id, annee)
+  id                 bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  collectivite_id    bigint NOT NULL REFERENCES collectivite(id),
+  exercice_fiscal_id bigint REFERENCES exercice_fiscal(id),
+  annee              smallint NOT NULL,            -- déduit de l'exercice
+  periode_debut      date,                         -- bornée à [exercice.date_debut, date_fin]
+  periode_fin        date,
+  montant            numeric(18,2) NOT NULL DEFAULT 0,
+  montant_revise     numeric(18,2),
+  created_by         bigint,
+  created_at         timestamptz NOT NULL DEFAULT now()
 );
 
 -- Paramétrage applicatif (remplace entete_etat, config_fen, modul_appli WinDev)

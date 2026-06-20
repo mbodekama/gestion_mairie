@@ -199,12 +199,12 @@ class TableauBordService
         $modes            = ['labels' => [], 'montants' => []];
 
         if ($exercice !== null) {
-            $objectif = DB::table('objectif')
+            // Un exercice peut porter plusieurs objectifs (périodes distinctes) :
+            // on somme la cible de chacun (révisée si renseignée).
+            $objectifMontant = (float) DB::table('objectif')
                 ->where('collectivite_id', $collectiviteId)
-                ->where('annee', $exercice->annee)
-                ->first(['montant', 'montant_revise']);
-
-            $objectifMontant = (float) ($objectif->montant_revise ?? $objectif->montant ?? 0);
+                ->where('exercice_fiscal_id', $exercice->id)
+                ->sum(DB::raw('COALESCE(montant_revise, montant)'));
 
             $recouvreExercice = (float) DB::table('reglement_taxe')
                 ->where('collectivite_id', $collectiviteId)
