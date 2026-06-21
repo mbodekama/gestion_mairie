@@ -20,10 +20,12 @@ use App\Http\Controllers\Parametrage\TypePersonneController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RecouvrementController;
 use App\Http\Controllers\Administration\AgentController;
+use App\Http\Controllers\Administration\CompteUtilisateurController;
 use App\Http\Controllers\Administration\ServiceController;
 use App\Http\Controllers\Administration\AuditController;
 use App\Http\Controllers\Administration\JournalController;
 use App\Http\Controllers\Administration\ParametreController;
+use App\Http\Controllers\Administration\RoleController;
 use App\Http\Controllers\Pilotage\ObjectifController;
 use App\Http\Controllers\Pilotage\ObligationController;
 use App\Http\Controllers\Pilotage\RapportController;
@@ -220,6 +222,15 @@ Route::middleware(['auth', 'session.lock'])->group(function () {
     Route::post('agents/filtre', [AgentController::class, 'index'])->name('agents.filtre');
     Route::post('agents/export', [AgentController::class, 'export'])->name('agents.export');
 
+    // Volet « accès » : comptes utilisateurs rattachés à un agent.
+    Route::middleware('can:SECURITE_GERER_UTILISATEUR')
+        ->group(function () {
+            Route::get('agents/{agent}/comptes/create', [CompteUtilisateurController::class, 'create'])->name('agents.comptes.create');
+            Route::post('agents/{agent}/comptes', [CompteUtilisateurController::class, 'store'])->name('agents.comptes.store');
+            Route::get('agents/{agent}/comptes/{compte}/edit', [CompteUtilisateurController::class, 'edit'])->name('agents.comptes.edit');
+            Route::put('agents/{agent}/comptes/{compte}', [CompteUtilisateurController::class, 'update'])->name('agents.comptes.update');
+        });
+
     Route::resource('services', ServiceController::class);
     Route::post('services/filtre', [ServiceController::class, 'index'])->name('services.filtre');
     Route::post('services/export', [ServiceController::class, 'export'])->name('services.export');
@@ -236,6 +247,13 @@ Route::middleware(['auth', 'session.lock'])->group(function () {
         Route::resource('parametres', ParametreController::class);
         Route::post('parametres/filtre', [ParametreController::class, 'index'])->name('parametres.filtre');
         Route::post('parametres/export', [ParametreController::class, 'export'])->name('parametres.export');
+
+        // Config Role : liste des rôles + gestion des permissions par rôle.
+        Route::middleware('can:SECURITE_GERER_ROLE')->group(function () {
+            Route::get('roles', [RoleController::class, 'index'])->name('roles.index');
+            Route::get('roles/{role}/edit', [RoleController::class, 'edit'])->name('roles.edit');
+            Route::match(['put', 'patch'], 'roles/{role}', [RoleController::class, 'update'])->name('roles.update');
+        });
     });
 
     // ===== Paramétrage référentiel contribuable =====

@@ -18,10 +18,12 @@
                     <span class="fas fa-bullseye me-2 text-primary"></span>Objectif {{ $objectif->annee }}
                 </h5>
                 <div class="d-flex gap-2">
+                    @can('PILOTAGE_GERER')
                     <a href="{{ route('pilotage.objectifs.edit', $objectif) }}"
                        class="btn btn-outline-primary btn-sm">
                         <span class="fas fa-edit me-1"></span>Modifier
                     </a>
+                    @endcan
                     <a href="{{ route('pilotage.objectifs.index') }}"
                        class="btn btn-outline-secondary btn-sm">
                         <span class="fas fa-arrow-left me-1"></span>Liste
@@ -91,6 +93,7 @@
                 </h5>
             </div>
             <div class="card-body">
+                @can('PILOTAGE_GERER')
                 <form method="POST" action="{{ route('pilotage.objectifs.destroy', $objectif) }}"
                       onsubmit="return confirm('Supprimer l\'objectif {{ $objectif->annee }} ?')">
                     @csrf @method('DELETE')
@@ -98,6 +101,7 @@
                         <span class="fas fa-trash me-1"></span>Supprimer cet objectif
                     </button>
                 </form>
+                @endcan
             </div>
         </div>
     </div>

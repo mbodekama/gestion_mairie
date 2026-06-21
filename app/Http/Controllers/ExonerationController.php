@@ -20,8 +20,23 @@ use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class ExonerationController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+class ExonerationController extends Controller implements HasMiddleware
 {
+    /**
+     * Autorisation par action (spatie). Réf. catalogue : RolePermissionSeeder.
+     */
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:EXO_CONSULTER', only: ['index', 'show', 'export']),
+            new Middleware('can:EXO_CREER', only: ['create', 'store']),
+            new Middleware('can:EXO_MODIFIER', only: ['edit', 'update']),
+            new Middleware('can:EXO_SUPPRIMER', only: ['destroy']),
+        ];
+    }
+
     private const COLONNES_TRI = [
         'numero', 'contribuable_id', 'type_exoneration_id',
         'date_decret', 'date_debut', 'date_fin', 'created_at',

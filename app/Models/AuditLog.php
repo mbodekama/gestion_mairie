@@ -21,4 +21,23 @@ class AuditLog extends Model
     {
         return $this->belongsTo(User::class, 'utilisateur_id');
     }
+
+    /**
+     * Libellé lisible de l'événement : priorité à la clé `_evenement` portée
+     * par `donnees_apres`, sinon repli sur (table cible × action).
+     */
+    public function descriptionLisible(): string
+    {
+        if (! empty($this->donnees_apres['_evenement'])) {
+            return $this->donnees_apres['_evenement'];
+        }
+
+        return match ("{$this->table_cible}:{$this->action}") {
+            'users:INSERT' => 'Création du compte utilisateur',
+            'users:UPDATE' => 'Modification du compte utilisateur',
+            'users:DELETE' => 'Suppression du compte utilisateur',
+            'agent:UPDATE' => 'Modification de la fiche agent',
+            default        => "{$this->action} sur {$this->table_cible}",
+        };
+    }
 }

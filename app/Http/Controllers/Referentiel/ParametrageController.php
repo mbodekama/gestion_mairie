@@ -17,8 +17,21 @@ use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class ParametrageController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+class ParametrageController extends Controller implements HasMiddleware
 {
+    /**
+     * Autorisation par action (spatie). Réf. catalogue : RolePermissionSeeder.
+     */
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:PARAMFISC_CONSULTER', only: ['index', 'show', 'export']),
+            new Middleware('can:PARAMFISC_GERER', only: ['create', 'store', 'edit', 'update', 'destroy']),
+        ];
+    }
+
     private const COLONNES_TRI = ['code', 'libelle', 'libelle_court', 'domaine_taxe_id', 'categorie_impot_taxe_id'];
 
     public function __construct(private SelectOptionsService $selectOptions) {}

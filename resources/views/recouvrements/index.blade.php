@@ -29,9 +29,11 @@
                         class="btn btn-success btn-sm" title="Exporter les données filtrées en Excel">
                     <span class="fas fa-file-excel me-1"></span>Exporter Excel
                 </button>
+                @can('RECOUVR_ENCAISSER')
                 <a href="{{ route('recouvrements.create') }}" class="btn btn-primary">
                     <span class="fas fa-plus me-1"></span>Nouveau règlement
                 </a>
+                @endcan
             </div>
         </div>
         <div class="card-body p-0">

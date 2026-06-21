@@ -13,10 +13,12 @@
                     <span class="fas fa-map me-2 text-primary"></span>Commune
                 </h5>
                 <div class="d-flex gap-2">
+                    @can('TERRITOIRE_GERER')
                     <a href="{{ route('referentiel.territorial.edit', $commune) }}"
                        class="btn btn-outline-primary btn-sm">
                         <span class="fas fa-edit me-1"></span>Modifier
                     </a>
+                    @endcan
                     <a href="{{ route('referentiel.territorial.index') }}"
                        class="btn btn-outline-secondary btn-sm">
                         <span class="fas fa-arrow-left me-1"></span>Liste
@@ -78,6 +80,7 @@
 
                 <div class="mt-4 pt-3 border-top">
                     @if ($nbEtablissements === 0)
+                        @can('TERRITOIRE_GERER')
                         <form method="POST" action="{{ route('referentiel.territorial.destroy', $commune) }}"
                               onsubmit="return confirm('Supprimer la commune {{ $commune->libelle }} ?')">
                             @csrf @method('DELETE')
@@ -85,6 +88,7 @@
                                 <span class="fas fa-trash me-1"></span>Supprimer cette commune
                             </button>
                         </form>
+                        @endcan
                     @else
                         <p class="text-500 fs-9 mb-0 text-center">
                             <span class="fas fa-lock me-1"></span>

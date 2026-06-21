@@ -93,6 +93,7 @@
                             </li>
 
                             {{-- ===== Contribuable ===== --}}
+                            @canany(['CONTRIB_CONSULTER', 'CONTRIB_MAILS', 'ETAB_CONSULTER', 'ACTIVITE_CONSULTER'])
                             <li class="nav-item">
                                 <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
                                     <div class="col-auto navbar-vertical-label">Contribuable</div>
@@ -116,6 +117,7 @@
                                 </a>
                                 <div class="collapse {{ $gestionContribActif ? 'show' : '' }}" id="gestionContribCollapse">
                                     <ul class="nav flex-column ms-3">
+                                        @can('CONTRIB_CONSULTER')
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('contribuables.*') && ! request()->routeIs('contribuables.mails-groupes.*') ? 'active' : '' }}" href="{{ route('contribuables.index') }}">
                                                 <div class="d-flex align-items-center">
@@ -124,6 +126,7 @@
                                                 </div>
                                             </a>
                                         </li>
+                                        @endcan
                                         @can('CONTRIB_MAILS')
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('contribuables.mails-groupes.*') ? 'active' : '' }}" href="{{ route('contribuables.mails-groupes.index') }}">
@@ -134,6 +137,7 @@
                                             </a>
                                         </li>
                                         @endcan
+                                        @can('ETAB_CONSULTER')
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('etablissements.*') ? 'active' : '' }}" href="{{ route('etablissements.index') }}">
                                                 <div class="d-flex align-items-center">
@@ -142,6 +146,8 @@
                                                 </div>
                                             </a>
                                         </li>
+                                        @endcan
+                                        @can('ACTIVITE_CONSULTER')
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('referentiel.activites.*') ? 'active' : '' }}" href="{{ route('referentiel.activites.index') }}">
                                                 <div class="d-flex align-items-center">
@@ -150,11 +156,14 @@
                                                 </div>
                                             </a>
                                         </li>
+                                        @endcan
                                     </ul>
                                 </div>
                             </li>
+                            @endcanany
 
                             {{-- ===== Gestion Recouvrement ===== --}}
+                            @canany(['EMISSION_CONSULTER', 'RECOUVR_CONSULTER', 'PARAMFISC_CONSULTER'])
                             <li class="nav-item">
                                 <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
                                     <div class="col-auto navbar-vertical-label">Gestion Recouvrement</div>
@@ -178,6 +187,7 @@
                                 </a>
                                 <div class="collapse {{ $gestionFiscaleActif ? 'show' : '' }}" id="gestionFiscaleCollapse">
                                     <ul class="nav flex-column ms-3">
+                                        @can('EMISSION_CONSULTER')
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('emissions.*') ? 'active' : '' }}" href="{{ route('emissions.index') }}">
                                                 <div class="d-flex align-items-center">
@@ -186,6 +196,8 @@
                                                 </div>
                                             </a>
                                         </li>
+                                        @endcan
+                                        @can('RECOUVR_CONSULTER')
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('recouvrements.*') ? 'active' : '' }}" href="{{ route('recouvrements.index') }}">
                                                 <div class="d-flex align-items-center">
@@ -194,6 +206,8 @@
                                                 </div>
                                             </a>
                                         </li>
+                                        @endcan
+                                        @can('PARAMFISC_CONSULTER')
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('parametrage.regimes-imposition.*') ? 'active' : '' }}" href="{{ route('parametrage.regimes-imposition.index') }}">
                                                 <div class="d-flex align-items-center">
@@ -202,11 +216,14 @@
                                                 </div>
                                             </a>
                                         </li>
+                                        @endcan
                                     </ul>
                                 </div>
                             </li>
+                            @endcanany
 
                             {{-- ===== Gestion du Contrôle ===== --}}
+                            @canany(['CONTROLE_CONSULTER', 'REDRESS_CONSULTER', 'EXO_CONSULTER', 'CONVOC_CONSULTER'])
                             <li class="nav-item">
                                 <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
                                     <div class="col-auto navbar-vertical-label">Gestion du Contrôle</div>
@@ -233,6 +250,7 @@
                                     </a>
                                 @endcan
 
+                                @can('EXO_CONSULTER')
                                 <a class="nav-link {{ request()->routeIs('exonerations.*') ? 'active' : '' }}"
                                    href="{{ route('exonerations.index') }}">
                                     <div class="d-flex align-items-center">
@@ -240,7 +258,9 @@
                                         <span class="nav-link-text ps-1">Exonérations</span>
                                     </div>
                                 </a>
+                                @endcan
 
+                                @can('CONVOC_CONSULTER')
                                 <a class="nav-link {{ request()->routeIs('convocations.*') ? 'active' : '' }}"
                                    href="{{ route('convocations.index') }}">
                                     <div class="d-flex align-items-center">
@@ -248,15 +268,19 @@
                                         <span class="nav-link-text ps-1">Convocations &amp; mises en demeure</span>
                                     </div>
                                 </a>
+                                @endcan
                             </li>
+                            @endcanany
 
                             {{-- ===== Paramétrage ===== --}}
+                            @canany(['EXERCICE_CONSULTER', 'PARAMFISC_CONSULTER', 'PILOTAGE_CONSULTER'])
                             <li class="nav-item">
                                 <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
                                     <div class="col-auto navbar-vertical-label">Gestion de la fiscalité </div>
                                     <div class="col ps-0"><hr class="mb-0 navbar-vertical-divider" /></div>
                                 </div>
 
+                                @canany(['EXERCICE_CONSULTER', 'PARAMFISC_CONSULTER', 'PILOTAGE_CONSULTER'])
                                 @php
                                     $paramFiscalActif = request()->routeIs('exercices-fiscaux.*')
                                         || request()->routeIs('referentiel.parametrage.*')
@@ -275,6 +299,7 @@
                                 </a>
                                 <div class="collapse {{ $paramFiscalActif ? 'show' : '' }}" id="paramFiscalCollapse">
                                     <ul class="nav flex-column ms-3">
+                                        @can('EXERCICE_CONSULTER')
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('exercices-fiscaux.*') ? 'active' : '' }}" href="{{ route('exercices-fiscaux.index') }}">
                                                 <div class="d-flex align-items-center">
@@ -283,6 +308,8 @@
                                                 </div>
                                             </a>
                                         </li>
+                                        @endcan
+                                        @can('PARAMFISC_CONSULTER')
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('referentiel.parametrage.*') ? 'active' : '' }}" href="{{ route('referentiel.parametrage.index') }}">
                                                 <div class="d-flex align-items-center">
@@ -291,6 +318,8 @@
                                                 </div>
                                             </a>
                                         </li>
+                                        @endcan
+                                        @can('PARAMFISC_CONSULTER')
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('parametrage.baremes-taxe.*') ? 'active' : '' }}" href="{{ route('parametrage.baremes-taxe.index') }}">
                                                 <div class="d-flex align-items-center">
@@ -299,6 +328,8 @@
                                                 </div>
                                             </a>
                                         </li>
+                                        @endcan
+                                        @can('PILOTAGE_CONSULTER')
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('pilotage.objectifs.*') ? 'active' : '' }}" href="{{ route('pilotage.objectifs.index') }}">
                                                 <div class="d-flex align-items-center">
@@ -307,9 +338,12 @@
                                                 </div>
                                             </a>
                                         </li>
+                                        @endcan
                                     </ul>
                                 </div>
+                                @endcanany
 
+                                @can('PILOTAGE_CONSULTER')
                                 @php
                                     $etatsActif = request()->routeIs('pilotage.rapports.*')
                                         || request()->routeIs('pilotage.statistiques.*');
@@ -326,6 +360,7 @@
                                 </a>
                                 <div class="collapse {{ $etatsActif ? 'show' : '' }}" id="etatsCollapse">
                                     <ul class="nav flex-column ms-3">
+                                        @can('PILOTAGE_CONSULTER')
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('pilotage.rapports.*') ? 'active' : '' }}"
                                                href="{{ route('pilotage.rapports.index') }}">
@@ -335,6 +370,8 @@
                                                 </div>
                                             </a>
                                         </li>
+                                        @endcan
+                                        @can('PILOTAGE_CONSULTER')
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('pilotage.statistiques.index') ? 'active' : '' }}"
                                                href="{{ route('pilotage.statistiques.index') }}">
@@ -344,6 +381,8 @@
                                                 </div>
                                             </a>
                                         </li>
+                                        @endcan
+                                        @can('PILOTAGE_CONSULTER')
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('pilotage.statistiques.calibree') ? 'active' : '' }}"
                                                href="{{ route('pilotage.statistiques.calibree') }}">
@@ -353,17 +392,22 @@
                                                 </div>
                                             </a>
                                         </li>
+                                        @endcan
                                     </ul>
                                 </div>
+                                @endcan
                             </li>
+                            @endcanany
 
                             {{-- ===== Sécurité ===== --}}
+                            @canany(['AGENT_CONSULTER', 'SERVICE_CONSULTER', 'AUDIT_CONSULTER', 'TERRITOIRE_CONSULTER', 'PARAMETRE_CONSULTER', 'PARAMFISC_CONSULTER', 'SECURITE_GERER_ROLE'])
                             <li class="nav-item">
                                 <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
                                     <div class="col-auto navbar-vertical-label">Administration &amp; Système</div>
                                     <div class="col ps-0"><hr class="mb-0 navbar-vertical-divider" /></div>
                                 </div>
 
+                                @canany(['AGENT_CONSULTER', 'SERVICE_CONSULTER', 'AUDIT_CONSULTER'])
                                 @php
                                     $securiteActif = request()->routeIs('agents.*')
                                         || request()->routeIs('services.*')
@@ -382,6 +426,7 @@
                                 </a>
                                 <div class="collapse {{ $securiteActif ? 'show' : '' }}" id="securiteCollapse">
                                     <ul class="nav flex-column ms-3">
+                                        @can('AGENT_CONSULTER')
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('agents.*') ? 'active' : '' }}" href="{{ route('agents.index') }}">
                                                 <div class="d-flex align-items-center">
@@ -390,6 +435,8 @@
                                                 </div>
                                             </a>
                                         </li>
+                                        @endcan
+                                        @can('SERVICE_CONSULTER')
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('services.*') ? 'active' : '' }}" href="{{ route('services.index') }}">
                                                 <div class="d-flex align-items-center">
@@ -398,6 +445,8 @@
                                                 </div>
                                             </a>
                                         </li>
+                                        @endcan
+                                        @can('AUDIT_CONSULTER')
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('administration.journal.*') ? 'active' : '' }}" href="{{ route('administration.journal.index') }}">
                                                 <div class="d-flex align-items-center">
@@ -406,6 +455,8 @@
                                                 </div>
                                             </a>
                                         </li>
+                                        @endcan
+                                        @can('AUDIT_CONSULTER')
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('administration.audit.*') ? 'active' : '' }}" href="{{ route('administration.audit.index') }}">
                                                 <div class="d-flex align-items-center">
@@ -414,14 +465,18 @@
                                                 </div>
                                             </a>
                                         </li>
+                                        @endcan
                                     </ul>
                                 </div>
+                                @endcanany
 
+                                @canany(['TERRITOIRE_CONSULTER', 'PARAMETRE_CONSULTER', 'PARAMFISC_CONSULTER', 'SECURITE_GERER_ROLE'])
                                 @php
                                     $configActif = request()->routeIs('administration.parametres.*')
                                         || request()->routeIs('referentiel.territorial.*')
                                         || request()->routeIs('parametrage.types-personne.*')
-                                        || request()->routeIs('parametrage.statuts-contribuable.*');
+                                        || request()->routeIs('parametrage.statuts-contribuable.*')
+                                        || request()->routeIs('administration.roles.*');
                                 @endphp
                                 <a class="nav-link dropdown-indicator {{ $configActif ? '' : 'collapsed' }}"
                                    href="#configCollapse"
@@ -435,6 +490,7 @@
                                 </a>
                                 <div class="collapse {{ $configActif ? 'show' : '' }}" id="configCollapse">
                                     <ul class="nav flex-column ms-3">
+                                        @can('TERRITOIRE_CONSULTER')
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('referentiel.territorial.*') ? 'active' : '' }}" href="{{ route('referentiel.territorial.index') }}">
                                                 <div class="d-flex align-items-center">
@@ -443,6 +499,8 @@
                                                 </div>
                                             </a>
                                         </li>
+                                        @endcan
+                                        @can('PARAMETRE_CONSULTER')
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('administration.parametres.*') ? 'active' : '' }}" href="{{ route('administration.parametres.index') }}">
                                                 <div class="d-flex align-items-center">
@@ -451,6 +509,8 @@
                                                 </div>
                                             </a>
                                         </li>
+                                        @endcan
+                                        @can('PARAMFISC_CONSULTER')
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('parametrage.types-personne.*') ? 'active' : '' }}" href="{{ route('parametrage.types-personne.index') }}">
                                                 <div class="d-flex align-items-center">
@@ -459,6 +519,8 @@
                                                 </div>
                                             </a>
                                         </li>
+                                        @endcan
+                                        @can('PARAMFISC_CONSULTER')
                                         <li class="nav-item">
                                             <a class="nav-link {{ request()->routeIs('parametrage.statuts-contribuable.*') ? 'active' : '' }}" href="{{ route('parametrage.statuts-contribuable.index') }}">
                                                 <div class="d-flex align-items-center">
@@ -467,9 +529,22 @@
                                                 </div>
                                             </a>
                                         </li>
+                                        @endcan
+                                        @can('SECURITE_GERER_ROLE')
+                                            <li class="nav-item">
+                                                <a class="nav-link {{ request()->routeIs('administration.roles.*') ? 'active' : '' }}" href="{{ route('administration.roles.index') }}">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="nav-link-icon"><span class="fas fa-user-tag"></span></span>
+                                                        <span class="nav-link-text ps-1">Config Role</span>
+                                                    </div>
+                                                </a>
+                                            </li>
+                                        @endcan
                                     </ul>
                                 </div>
+                                @endcanany
                             </li>
+                            @endcanany
 
                             {{-- ===== Mon compte ===== --}}
                             <li class="nav-item">

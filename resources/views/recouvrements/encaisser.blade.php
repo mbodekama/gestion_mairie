@@ -17,9 +17,11 @@
             <span class="fas fa-user me-2 text-primary"></span>{{ $nomContrib }}
             <span class="badge bg-secondary ms-1">{{ $contribuable->type_personne }}</span>
         </h5>
+        @can('RECOUVR_ENCAISSER')
         <a href="{{ route('recouvrements.create') }}" class="btn btn-outline-secondary btn-sm">
             <span class="fas fa-redo me-1"></span>Changer de redevable
         </a>
+        @endcan
     </div>
     <div class="card-body">
         <div class="row g-3 fs-9">

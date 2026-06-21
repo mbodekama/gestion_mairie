@@ -16,9 +16,11 @@
             <span class="badge bg-secondary ms-2">{{ $baremeTaxe->categorieActivite?->libelle ?? 'Toutes catégories' }}</span>
         </h5>
         <div class="d-flex gap-2">
+            @can('PARAMFISC_GERER')
             <a href="{{ route('parametrage.baremes-taxe.edit', $baremeTaxe) }}" class="btn btn-outline-warning btn-sm">
                 <span class="fas fa-edit me-1"></span>Modifier
             </a>
+            @endcan
             <a href="{{ route('parametrage.baremes-taxe.index') }}" class="btn btn-outline-secondary btn-sm">
                 <span class="fas fa-arrow-left me-1"></span>Retour
             </a>
@@ -57,6 +59,7 @@
     </div>
     <div class="card-footer d-flex justify-content-between align-items-center">
         <span class="fs-9 text-600"><span class="fas fa-clock me-1"></span>Mis à jour le {{ $baremeTaxe->updated_at?->format('d/m/Y') ?? '—' }}</span>
+        @can('PARAMFISC_GERER')
         <form method="POST" action="{{ route('parametrage.baremes-taxe.destroy', $baremeTaxe) }}"
               onsubmit="return confirm('Confirmer la suppression de ce barème ?')">
             @csrf
@@ -65,6 +68,7 @@
                 <span class="fas fa-trash me-1"></span>Supprimer ce barème
             </button>
         </form>
+        @endcan
     </div>
 </div>
 

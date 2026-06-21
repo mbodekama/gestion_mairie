@@ -12,8 +12,20 @@ use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class ParametreController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+class ParametreController extends Controller implements HasMiddleware
 {
+    /**
+     * Autorisation par action (spatie). Réf. catalogue : RolePermissionSeeder.
+     */
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:PARAMETRE_CONSULTER', only: ['index', 'export']),
+        ];
+    }
+
     private const COLONNES_TRI = ['cle', 'valeur'];
 
     public function index(Request $request)

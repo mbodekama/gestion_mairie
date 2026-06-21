@@ -26,9 +26,11 @@
                         class="btn btn-success btn-sm" title="Exporter les données filtrées en Excel">
                     <span class="fas fa-file-excel me-1"></span>Exporter Excel
                 </button>
+                @can('ACTIVITE_GERER')
                 <a href="{{ route('referentiel.activites.create') }}" class="btn btn-primary">
                     <span class="fas fa-plus me-1"></span>Nouvelle activité
                 </a>
+                @endcan
             </div>
         </div>
         <div class="card-body p-0">
@@ -72,10 +74,13 @@
                                            class="btn btn-sm btn-outline-info" title="Voir le détail">
                                             <span class="fas fa-eye me-1"></span>Voir
                                         </a>
+                                        @can('ACTIVITE_GERER')
                                         <a href="{{ route('referentiel.activites.edit', $activite) }}"
                                            class="btn btn-sm btn-outline-warning" title="Modifier">
                                             <span class="fas fa-edit me-1"></span>Modifier
                                         </a>
+                                        @endcan
+                                        @can('ACTIVITE_GERER')
                                         <form method="POST"
                                               action="{{ route('referentiel.activites.destroy', $activite) }}"
                                               onsubmit="return confirm('Confirmer la suppression de l\'activité {{ $activite->code }} ?')">
@@ -85,6 +90,7 @@
                                                 <span class="fas fa-trash me-1"></span>Supprimer
                                             </button>
                                         </form>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>

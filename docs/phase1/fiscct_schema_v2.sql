@@ -214,6 +214,21 @@ CREATE TABLE agent (
 );
 CREATE TRIGGER tg_agent BEFORE UPDATE ON agent FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
 
+-- ---------------------------------------------------------------------------
+-- DÉPRÉCIÉ — conservé à titre de référence de conception (Phase 1).
+-- L'implémentation utilise la table `users` du framework Laravel (Auth standard
+-- + spatie/laravel-permission), et la table `utilisateur` a été supprimée
+-- (migration finaliser_depreciation_utilisateur).
+--
+-- Schéma réel `users` (volet « accès » des agents) :
+--   id, name, email (UNIQUE), email_verified_at, password (hash),
+--   remember_token, agent_id REFERENCES agent(id),       -- compte ↔ agent
+--   actif boolean NOT NULL DEFAULT true,                 -- compte désactivé = login refusé
+--   created_at, updated_at
+-- Le statut multi-valeurs ci-dessous est simplifié en un booléen `actif`.
+-- Rôles/permissions : tables spatie (roles, permissions, model_has_roles, …),
+-- alignées sur le catalogue de `fiscct_seed_securite.sql`.
+-- ---------------------------------------------------------------------------
 CREATE TABLE utilisateur (
   id              bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   login           varchar(64) NOT NULL UNIQUE,

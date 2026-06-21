@@ -26,9 +26,11 @@
                         class="btn btn-success btn-sm" title="Exporter les données filtrées en Excel">
                     <span class="fas fa-file-excel me-1"></span>Exporter Excel
                 </button>
+                @can('PARAMFISC_GERER')
                 <a href="{{ route('parametrage.baremes-taxe.create') }}" class="btn btn-primary">
                     <span class="fas fa-plus me-1"></span>Nouveau barème
                 </a>
+                @endcan
             </div>
         </div>
         <div class="card-body p-0">
@@ -78,10 +80,13 @@
                                            class="btn btn-sm btn-outline-info" title="Voir la fiche">
                                             <span class="fas fa-eye me-1"></span>Voir
                                         </a>
+                                        @can('PARAMFISC_GERER')
                                         <a href="{{ route('parametrage.baremes-taxe.edit', $bareme) }}"
                                            class="btn btn-sm btn-outline-warning" title="Modifier">
                                             <span class="fas fa-edit me-1"></span>Modifier
                                         </a>
+                                        @endcan
+                                        @can('PARAMFISC_GERER')
                                         <form method="POST"
                                               action="{{ route('parametrage.baremes-taxe.destroy', $bareme) }}"
                                               onsubmit="return confirm('Confirmer la suppression de ce barème ?')">
@@ -92,6 +97,7 @@
                                                 <span class="fas fa-trash me-1"></span>Supprimer
                                             </button>
                                         </form>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>

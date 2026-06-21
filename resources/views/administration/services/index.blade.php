@@ -22,9 +22,11 @@
                         class="btn btn-success btn-sm" title="Exporter en Excel">
                     <span class="fas fa-file-excel me-1"></span>Exporter Excel
                 </button>
+                @can('SERVICE_GERER')
                 <a href="{{ route('services.create') }}" class="btn btn-primary btn-sm">
                     <span class="fas fa-plus me-1"></span>Nouveau service
                 </a>
+                @endcan
             </div>
         </div>
         <div class="card-body p-0">
@@ -57,9 +59,12 @@
                                         <a href="{{ route('services.show', $service) }}" class="btn btn-sm btn-outline-info" title="Voir">
                                             <span class="fas fa-eye"></span>
                                         </a>
+                                        @can('SERVICE_GERER')
                                         <a href="{{ route('services.edit', $service) }}" class="btn btn-sm btn-outline-warning" title="Modifier">
                                             <span class="fas fa-edit"></span>
                                         </a>
+                                        @endcan
+                                        @can('SERVICE_GERER')
                                         <form method="POST" action="{{ route('services.destroy', $service) }}"
                                               onsubmit="return confirm('Supprimer le service {{ $service->code }} ?')">
                                             @csrf @method('DELETE')
@@ -68,6 +73,7 @@
                                                 <span class="fas fa-trash"></span>
                                             </button>
                                         </form>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>

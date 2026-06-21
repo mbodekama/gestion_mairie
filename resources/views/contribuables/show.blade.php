@@ -61,20 +61,26 @@
 
             {{-- Actions --}}
             <div class="d-flex flex-column flex-sm-row gap-2 flex-shrink-0">
+                @can('CONTRIB_MODIFIER')
                 <a href="{{ route('contribuables.edit', $contribuable) }}"
                    class="btn btn-light btn-sm">
                     <span class="fas fa-edit me-1"></span>Modifier
                 </a>
+                @endcan
+                @can('ETAB_CREER')
                 <a href="{{ route('etablissements.create', ['contribuable_id' => $contribuable->id]) }}"
                    class="btn btn-light btn-sm">
                     <span class="fas fa-plus me-1"></span>Établissement
                 </a>
+                @endcan
+                @can('CONTRIB_SUPPRIMER')
                 <x-suppression
                     :action="route('contribuables.destroy', $contribuable)"
                     :bloquee="$suppressionBloquee"
                     raison="Rattaché à des impositions / recouvrements : suppression impossible."
                     libelle="ce contribuable"
                     id="modalSuppContrib" />
+                @endcan
                 <a href="{{ route('contribuables.index') }}"
                    class="btn btn-outline-light btn-sm">
                     <span class="fas fa-arrow-left me-1"></span>Retour
@@ -459,10 +465,12 @@
             Émissions de taxe
             <span class="badge bg-secondary ms-2">{{ $emissions->count() }}</span>
         </h5>
+        @can('EMISSION_CREER')
         <a href="{{ route('emissions.create', ['contribuable_id' => $contribuable->id]) }}"
            class="btn btn-primary btn-sm">
             <span class="fas fa-plus me-1"></span>Nouvelle émission
         </a>
+        @endcan
     </div>
 
     @if ($emissions->isEmpty())
@@ -557,10 +565,12 @@
             Exonérations fiscales
             <span class="badge bg-secondary ms-2">{{ $contribuable->exonerations->count() }}</span>
         </h5>
+        @can('EXO_CREER')
         <a href="{{ route('exonerations.create', ['contribuable_id' => $contribuable->id]) }}"
            class="btn btn-primary btn-sm">
             <span class="fas fa-plus me-1"></span>Nouvelle exonération
         </a>
+        @endcan
     </div>
 
     @if ($contribuable->exonerations->isEmpty())
@@ -644,10 +654,12 @@
             <span class="fas fa-clipboard-list me-2 text-primary"></span>Obligations fiscales
             <span class="badge bg-secondary ms-1">{{ $contribuable->obligations->count() }}</span>
         </h5>
+        @can('PILOTAGE_GERER')
         <a href="{{ route('pilotage.obligations.create', ['code' => $contribuable->numero_identifiant]) }}"
            class="btn btn-sm btn-outline-primary" title="Gérer les obligations">
             <span class="fas fa-edit me-1"></span>Gérer
         </a>
+        @endcan
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">

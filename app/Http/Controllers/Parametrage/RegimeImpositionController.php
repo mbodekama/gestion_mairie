@@ -9,8 +9,21 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
-class RegimeImpositionController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+class RegimeImpositionController extends Controller implements HasMiddleware
 {
+    /**
+     * Autorisation par action (spatie). Réf. catalogue : RolePermissionSeeder.
+     */
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:PARAMFISC_CONSULTER', only: ['index']),
+            new Middleware('can:PARAMFISC_GERER', only: ['create', 'store', 'edit', 'update', 'destroy']),
+        ];
+    }
+
     public function index(Request $request): View
     {
         $query = RegimeImposition::query();

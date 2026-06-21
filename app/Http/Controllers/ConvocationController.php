@@ -19,8 +19,22 @@ use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class ConvocationController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+class ConvocationController extends Controller implements HasMiddleware
 {
+    /**
+     * Autorisation par action (spatie). Réf. catalogue : RolePermissionSeeder.
+     */
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:CONVOC_CONSULTER', only: ['index', 'show', 'export']),
+            new Middleware('can:CONVOC_CREER', only: ['create', 'store']),
+            new Middleware('can:CONVOC_MODIFIER', only: ['edit', 'update', 'destroy']),
+        ];
+    }
+
     private const COLONNES_TRI = [
         'numero', 'etablissement_id', 'service_id',
         'annee', 'date_convocation', 'date_limite', 'date_reponse', 'created_at',

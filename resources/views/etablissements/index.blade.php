@@ -35,9 +35,11 @@
                         class="btn btn-success btn-sm" title="Exporter les données filtrées en Excel">
                     <span class="fas fa-file-excel me-1"></span>Exporter Excel
                 </button>
+                @can('ETAB_CREER')
                 <a href="{{ route('etablissements.create') }}" class="btn btn-primary">
                     <span class="fas fa-plus me-1"></span>Nouvel établissement
                 </a>
+                @endcan
             </div>
         </div>
         <div class="card-body p-0">
@@ -120,10 +122,12 @@
                                            class="btn btn-sm btn-outline-info" title="Voir la fiche">
                                             <span class="fas fa-eye me-1"></span>Voir
                                         </a>
+                                        @can('ETAB_MODIFIER')
                                         <a href="{{ route('etablissements.edit', $etablissement) }}"
                                            class="btn btn-sm btn-outline-warning" title="Modifier">
                                             <span class="fas fa-edit me-1"></span>Modifier
                                         </a>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>

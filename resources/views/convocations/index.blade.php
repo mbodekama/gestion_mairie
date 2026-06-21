@@ -27,9 +27,11 @@
                         class="btn btn-success btn-sm" title="Exporter les données filtrées en Excel">
                     <span class="fas fa-file-excel me-1"></span>Exporter Excel
                 </button>
+                @can('CONVOC_CREER')
                 <a href="{{ route('convocations.create') }}" class="btn btn-primary">
                     <span class="fas fa-plus me-1"></span>Convocation / mise en demeure
                 </a>
+                @endcan
             </div>
         </div>
         <div class="card-body p-0">
@@ -113,10 +115,13 @@
                                            class="btn btn-sm btn-outline-info" title="Voir le détail">
                                             <span class="fas fa-eye me-1"></span>Voir
                                         </a>
+                                        @can('CONVOC_MODIFIER')
                                         <a href="{{ route('convocations.edit', $convocation) }}"
                                            class="btn btn-sm btn-outline-warning" title="Modifier">
                                             <span class="fas fa-edit me-1"></span>Modifier
                                         </a>
+                                        @endcan
+                                        @can('CONVOC_MODIFIER')
                                         <form method="POST"
                                               action="{{ route('convocations.destroy', $convocation) }}"
                                               onsubmit="return confirm('Confirmer la suppression de la convocation {{ $convocation->numero }} ?')">
@@ -126,6 +131,7 @@
                                                 <span class="fas fa-trash me-1"></span>Supprimer
                                             </button>
                                         </form>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>

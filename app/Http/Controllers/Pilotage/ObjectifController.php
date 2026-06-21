@@ -17,8 +17,21 @@ use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class ObjectifController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+class ObjectifController extends Controller implements HasMiddleware
 {
+    /**
+     * Autorisation par action (spatie). Réf. catalogue : RolePermissionSeeder.
+     */
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:PILOTAGE_CONSULTER', only: ['index', 'show', 'export']),
+            new Middleware('can:PILOTAGE_GERER', only: ['create', 'store', 'edit', 'update', 'destroy']),
+        ];
+    }
+
     private const COLONNES_TRI = ['annee', 'montant', 'montant_revise', 'created_at'];
 
     public function index(Request $request)
@@ -88,7 +101,7 @@ class ObjectifController extends Controller
      */
     private function donneesAvecExercice(ObjectifRequest $request, ExerciceFiscal $exercice): array
     {
-        return $request->validated() + [
+        return $request->donneesObjectif() + [
             'annee'           => $exercice->annee,
             'collectivite_id' => $exercice->collectivite_id,
         ];

@@ -30,9 +30,11 @@
                         class="btn btn-success btn-sm" title="Exporter les données filtrées en Excel">
                     <span class="fas fa-file-excel me-1"></span>Exporter Excel
                 </button>
+                @can('DOSSIER_CREER')
                 <a href="{{ route('dossiers.create') }}" class="btn btn-primary">
                     <span class="fas fa-plus me-1"></span>Nouveau dossier
                 </a>
+                @endcan
             </div>
         </div>
         <div class="card-body p-0">
@@ -104,10 +106,13 @@
                                            class="btn btn-sm btn-outline-info" title="Voir le dossier">
                                             <span class="fas fa-eye me-1"></span>Voir
                                         </a>
+                                        @can('DOSSIER_MODIFIER')
                                         <a href="{{ route('dossiers.edit', $dossier) }}"
                                            class="btn btn-sm btn-outline-warning" title="Modifier">
                                             <span class="fas fa-edit me-1"></span>Modifier
                                         </a>
+                                        @endcan
+                                        @can('DOSSIER_MODIFIER')
                                         <form method="POST"
                                               action="{{ route('dossiers.destroy', $dossier) }}"
                                               onsubmit="return confirm('Confirmer la suppression du dossier {{ $dossier->numero }} ?')">
@@ -117,6 +122,7 @@
                                                 <span class="fas fa-trash me-1"></span>Supprimer
                                             </button>
                                         </form>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>

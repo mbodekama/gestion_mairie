@@ -20,15 +20,13 @@
             <div class="row g-3 align-items-end">
                 <div class="col-md-6">
                     <label class="form-label fs-9">
-                        Code contribuable ou établissement <span class="text-danger">*</span>
+                        Identification (saisissez Identifiant / NCC / Num établissement)
+                        <span class="text-danger">*</span>
                     </label>
                     <input type="text" name="code" value="{{ $code ?? '' }}"
                            class="form-control form-control-lg"
                            placeholder="Ex : CI2024000001 (contribuable) ou ET20260001 (établissement)"
                            autofocus required style="text-transform:uppercase">
-                    <small class="text-muted">
-                        Numéro identifiant ou numéro de compte du contribuable, ou numéro d'établissement.
-                    </small>
                 </div>
                 <div class="col-md-3">
                     <button type="submit" class="btn btn-primary btn-lg w-100">

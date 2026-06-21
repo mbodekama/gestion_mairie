@@ -17,9 +17,11 @@
                 </p>
             </div>
             <div class="d-flex flex-column flex-sm-row gap-2 flex-shrink-0">
+                @can('SERVICE_GERER')
                 <a href="{{ route('services.edit', $service) }}" class="btn btn-light btn-sm">
                     <span class="fas fa-edit me-1"></span>Modifier
                 </a>
+                @endcan
                 <a href="{{ route('services.index') }}" class="btn btn-outline-light btn-sm">
                     <span class="fas fa-list me-1"></span>Liste
                 </a>
@@ -85,6 +87,7 @@
         <div class="fs-9 text-muted">
             La suppression est définitive. Un service auquel des agents sont rattachés ne peut être supprimé.
         </div>
+        @can('SERVICE_GERER')
         <form method="POST" action="{{ route('services.destroy', $service) }}"
               onsubmit="return confirm('Supprimer définitivement le service {{ $service->code }} ?')">
             @csrf @method('DELETE')
@@ -92,6 +95,7 @@
                 <span class="fas fa-trash me-1"></span>Supprimer le service
             </button>
         </form>
+        @endcan
     </div>
 </div>
 

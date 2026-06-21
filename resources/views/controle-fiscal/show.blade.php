@@ -52,10 +52,12 @@
             </div>
 
             <div class="d-flex flex-column flex-sm-row gap-2 flex-shrink-0">
+                @can('CONTROLE_GERER')
                 <a href="{{ route('controle-fiscal.edit', $controleFiscal) }}"
                    class="btn btn-light btn-sm">
                     <span class="fas fa-edit me-1"></span>Modifier
                 </a>
+                @endcan
                 @if ($controleFiscal->etablissement)
                     <a href="{{ route('etablissements.show', $controleFiscal->etablissement) }}"
                        class="btn btn-outline-light btn-sm">
@@ -194,6 +196,7 @@
                         <dd class="col-6">{{ $controleFiscal->created_at?->format('d/m/Y') ?? '—' }}</dd>
                     </dl>
                     <div class="d-grid mt-3">
+                        @can('CONTROLE_GERER')
                         <form method="POST" action="{{ route('controle-fiscal.destroy', $controleFiscal) }}"
                               onsubmit="return confirm('Supprimer définitivement ce contrôle fiscal ?')">
                             @csrf @method('DELETE')
@@ -201,6 +204,7 @@
                                 <span class="fas fa-trash me-1"></span>Supprimer
                             </button>
                         </form>
+                        @endcan
                     </div>
                 </div>
             </div>

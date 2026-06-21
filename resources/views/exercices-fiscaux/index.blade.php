@@ -25,9 +25,11 @@
                         class="btn btn-success btn-sm" title="Exporter les données filtrées en Excel">
                     <span class="fas fa-file-excel me-1"></span>Exporter Excel
                 </button>
+                @can('EXERCICE_OUVRIR')
                 <a href="{{ route('exercices-fiscaux.create') }}" class="btn btn-primary">
                     <span class="fas fa-plus me-1"></span>Nouvel exercice
                 </a>
+                @endcan
             </div>
         </div>
         <div class="card-body p-0">
@@ -75,10 +77,13 @@
                                             <span class="fas fa-eye me-1"></span>Voir
                                         </a>
                                         @unless ($exercice->cloture)
+                                            @can('EXERCICE_OUVRIR')
                                             <a href="{{ route('exercices-fiscaux.edit', $exercice) }}"
                                                class="btn btn-sm btn-outline-warning" title="Modifier">
                                                 <span class="fas fa-edit me-1"></span>Modifier
                                             </a>
+                                            @endcan
+                                            @can('EXERCICE_OUVRIR')
                                             <form method="POST"
                                                   action="{{ route('exercices-fiscaux.destroy', $exercice) }}"
                                                   onsubmit="return confirm('Confirmer la suppression de l\'exercice {{ $exercice->annee }} ?')">
@@ -89,6 +94,7 @@
                                                     <span class="fas fa-trash me-1"></span>Supprimer
                                                 </button>
                                             </form>
+                                            @endcan
                                         @endunless
                                     </div>
                                 </td>

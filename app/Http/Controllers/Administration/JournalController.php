@@ -12,8 +12,20 @@ use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class JournalController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+class JournalController extends Controller implements HasMiddleware
 {
+    /**
+     * Autorisation par action (spatie). Réf. catalogue : RolePermissionSeeder.
+     */
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:AUDIT_CONSULTER', only: ['index', 'export']),
+        ];
+    }
+
     private const COLONNES_TRI = [
         'login', 'succes', 'adresse_ip', 'application', 'horodatage',
     ];

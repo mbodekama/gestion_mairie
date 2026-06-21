@@ -17,8 +17,20 @@ use Illuminate\View\View;
  * Les agrégats proviennent de {@see TableauBordService} (mêmes calculs que le
  * tableau de bord, sommes monétaires réalisées côté PostgreSQL sur NUMERIC).
  */
-class StatistiqueController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+class StatistiqueController extends Controller implements HasMiddleware
 {
+    /**
+     * Autorisation par action (spatie). Réf. catalogue : RolePermissionSeeder.
+     */
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:PILOTAGE_CONSULTER', only: ['index', 'calibree', 'calibreeGenerer']),
+        ];
+    }
+
     public function __construct(private TableauBordService $tableauBord) {}
 
     public function index(): View

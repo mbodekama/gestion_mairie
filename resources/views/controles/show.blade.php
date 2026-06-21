@@ -128,9 +128,11 @@
     <div class="card-body d-flex flex-wrap gap-2">
         {{-- Valider (génère la convocation) --}}
         @if ($trParCible->has('VALIDE'))
+            @can('CONTROLE_VALIDER')
             <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#modalValider">
                 <span class="fas fa-check-circle me-1"></span>Valider le contrôle
             </button>
+            @endcan
         @endif
 
         {{-- Saisir / compléter le rapport --}}
@@ -144,6 +146,7 @@
 
         {{-- Clôturer (favorable) --}}
         @if ($trParCible->has('CLOTURE'))
+            @can('CONTROLE_CLOTURER')
             <form method="POST" action="{{ route('controles.transition', $controle) }}"
                   onsubmit="return confirm('Clôturer ce contrôle sans dommage pour le contribuable ?')">
                 @csrf
@@ -152,17 +155,21 @@
                     <span class="fas fa-flag-checkered me-1"></span>Clôturer (favorable)
                 </button>
             </form>
+            @endcan
         @endif
 
         {{-- Redresser (défaillant) --}}
         @if ($trParCible->has('REDRESSE'))
+            @can('CONTROLE_REDRESSER')
             <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalRedresser">
                 <span class="fas fa-gavel me-1"></span>Ouvrir un redressement
             </button>
+            @endcan
         @endif
 
         {{-- Renvoi en instruction --}}
         @if ($trParCible->has('INSTRUCTION'))
+            @can('CONTROLE_INSTRUIRE')
             <form method="POST" action="{{ route('controles.transition', $controle) }}"
                   onsubmit="return confirm('Renvoyer le contrôle en instruction ?')">
                 @csrf
@@ -171,6 +178,7 @@
                     <span class="fas fa-undo me-1"></span>Renvoyer en instruction
                 </button>
             </form>
+            @endcan
         @endif
     </div>
 </div>
@@ -325,6 +333,7 @@
 
 {{-- ===== Modale Valider (convocation) ===== --}}
 @if ($trParCible->has('VALIDE'))
+@can('CONTROLE_VALIDER')
 <div class="modal fade" id="modalValider" tabindex="-1">
     <div class="modal-dialog">
         <form method="POST" action="{{ route('controles.transition', $controle) }}">
@@ -380,10 +389,12 @@
         </form>
     </div>
 </div>
+@endcan
 @endif
 
 {{-- ===== Modale Redresser ===== --}}
 @if ($trParCible->has('REDRESSE'))
+@can('CONTROLE_REDRESSER')
 <div class="modal fade" id="modalRedresser" tabindex="-1">
     <div class="modal-dialog">
         <form method="POST" action="{{ route('controles.transition', $controle) }}">
@@ -414,6 +425,7 @@
         </form>
     </div>
 </div>
+@endcan
 @endif
 
 </x-app-layout>

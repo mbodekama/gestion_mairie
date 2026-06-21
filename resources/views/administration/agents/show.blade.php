@@ -20,9 +20,11 @@
                 <span class="badge bg-{{ $agent->actif ? 'success' : 'danger' }}">{{ $agent->actif ? 'Actif' : 'Inactif' }}</span>
             </div>
             <div class="d-flex flex-column flex-sm-row gap-2 flex-shrink-0">
+                @can('AGENT_MODIFIER')
                 <a href="{{ route('agents.edit', $agent) }}" class="btn btn-light btn-sm">
                     <span class="fas fa-edit me-1"></span>Modifier
                 </a>
+                @endcan
                 <a href="{{ route('agents.index') }}" class="btn btn-outline-light btn-sm">
                     <span class="fas fa-list me-1"></span>Liste
                 </a>
@@ -61,14 +63,44 @@
     </div>
 
     <div class="col-lg-5">
-        {{-- Comptes utilisateurs --}}
+        {{-- Comptes utilisateurs (volet « accès ») --}}
         <div class="card mb-3 card-section">
-            <div class="card-header py-3"><h5 class="mb-0 d-flex align-items-center"><span class="num-section">02</span><span class="fas fa-user-shield me-2 text-primary"></span>Compte utilisateur</h5></div>
+            <div class="card-header py-3 d-flex align-items-center justify-content-between">
+                <h5 class="mb-0 d-flex align-items-center"><span class="num-section">02</span><span class="fas fa-user-shield me-2 text-primary"></span>Compte utilisateur</h5>
+                @can('SECURITE_GERER_UTILISATEUR')
+                    @if ($agent->utilisateurs->isEmpty())
+                        @can('SECURITE_GERER_UTILISATEUR')
+                        <a href="{{ route('agents.comptes.create', $agent) }}" class="btn btn-primary btn-sm">
+                            <span class="fas fa-plus me-1"></span>Créer un compte
+                        </a>
+                        @endcan
+                    @else
+                        @can('SECURITE_GERER_UTILISATEUR')
+                        <a href="{{ route('agents.comptes.edit', [$agent, $agent->utilisateurs->first()]) }}"
+                           class="btn btn-outline-warning btn-sm">
+                            <span class="fas fa-cog me-1"></span>Gérer le compte
+                        </a>
+                        @endcan
+                    @endif
+                @endcan
+            </div>
             <div class="card-body fs-9">
                 @forelse ($agent->utilisateurs as $u)
-                    <div class="d-flex justify-content-between align-items-center {{ !$loop->last ? 'border-bottom pb-2 mb-2' : '' }}">
-                        <span><span class="fas fa-user me-1 text-muted"></span>{{ $u->name ?? '—' }}</span>
-                        <span class="badge bg-light text-dark border">{{ $u->email }}</span>
+                    <div class="{{ !$loop->last ? 'border-bottom pb-2 mb-2' : '' }}">
+                        <div class="fw-semi-bold">
+                            <span class="fas fa-user me-1 text-muted"></span>{{ $u->name ?? '—' }}
+                            <span class="badge bg-{{ $u->actif ? 'success' : 'secondary' }} ms-1">
+                                {{ $u->actif ? 'Actif' : 'Désactivé' }}
+                            </span>
+                        </div>
+                        <div class="text-600"><span class="fas fa-envelope me-1"></span>{{ $u->email }}</div>
+                        <div class="mt-1">
+                            @forelse ($u->roles as $role)
+                                <span class="badge bg-soft-primary text-primary border border-primary">{{ $role->name }}</span>
+                            @empty
+                                <span class="badge bg-light text-dark border">Aucun rôle</span>
+                            @endforelse
+                        </div>
                     </div>
                 @empty
                     <span class="text-muted">Aucun compte rattaché.</span>
@@ -100,12 +132,52 @@
     </div>
 </div>
 
+{{-- Actions récentes (audit) — visibles dès que l'agent a un compte rattaché --}}
+<div class="card mb-3 card-section">
+    <div class="card-header py-3">
+        <h5 class="mb-0 d-flex align-items-center">
+            <span class="num-section">04</span>
+            <span class="fas fa-history me-2 text-primary"></span>Actions récentes
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        @forelse ($actionsRecentes as $action)
+            @php
+                $icone = match ($action->action) {
+                    'INSERT' => 'fa-plus-circle text-success',
+                    'DELETE' => 'fa-trash text-danger',
+                    default  => 'fa-pen text-warning',
+                };
+            @endphp
+            <div class="d-flex align-items-start gap-3 px-3 py-2 {{ !$loop->last ? 'border-bottom' : '' }}">
+                <span class="fas {{ $icone }} mt-1"></span>
+                <div class="flex-grow-1 fs-9">
+                    <div class="fw-semi-bold">{{ $action->descriptionLisible() }}</div>
+                    <div class="text-600">
+                        par {{ $action->utilisateur?->name ?? 'Système' }}
+                        · {{ $action->horodatage?->format('d/m/Y H:i') }}
+                    </div>
+                </div>
+                <span class="badge bg-light text-dark border flex-shrink-0">{{ $action->table_cible }}</span>
+            </div>
+        @empty
+            <div class="px-3 py-4 text-center text-muted fs-9">
+                <span class="fas fa-inbox me-1"></span>Aucune action enregistrée pour le moment.
+            </div>
+        @endforelse
+    </div>
+    <div class="card-footer d-flex justify-content-end align-items-center py-2 fs-9 text-600">
+        <span class="fas fa-history me-1"></span>{{ $actionsRecentes->count() }} action(s) récente(s)
+    </div>
+</div>
+
 {{-- Suppression --}}
 <div class="card mb-4 border-danger">
     <div class="card-body d-flex justify-content-between align-items-center">
         <div class="fs-9 text-muted">
             La suppression est définitive. Un agent rattaché à un compte utilisateur ne peut être supprimé.
         </div>
+        @can('AGENT_SUPPRIMER')
         <form method="POST" action="{{ route('agents.destroy', $agent) }}"
               onsubmit="return confirm('Supprimer définitivement l\'agent {{ $agent->matricule }} ?')">
             @csrf @method('DELETE')
@@ -113,6 +185,7 @@
                 <span class="fas fa-trash me-1"></span>Supprimer l'agent
             </button>
         </form>
+        @endcan
     </div>
 </div>
 

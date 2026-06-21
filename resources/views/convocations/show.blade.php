@@ -35,9 +35,11 @@
             </div>
             <div class="d-flex flex-column flex-sm-row gap-2 flex-shrink-0">
                 @unless ($convocation->controle_id)
+                    @can('CONVOC_MODIFIER')
                     <a href="{{ route('convocations.edit', $convocation) }}" class="btn btn-light btn-sm">
                         <span class="fas fa-edit me-1"></span>Modifier
                     </a>
+                    @endcan
                 @endunless
                 <a href="{{ route('convocations.index') }}" class="btn btn-outline-light btn-sm">
                     <span class="fas fa-list me-1"></span>Liste
@@ -98,6 +100,7 @@
                     <div class="fs-5 fw-bold text-warning">{{ $fcfa($convocation->montant_du) }}</div>
                 </div>
                 @unless ($convocation->controle_id)
+                    @can('CONVOC_MODIFIER')
                     <form method="POST" action="{{ route('convocations.destroy', $convocation) }}" class="d-grid mt-3"
                           onsubmit="return confirm('Supprimer la convocation {{ $convocation->numero }} ?')">
                         @csrf @method('DELETE')
@@ -105,6 +108,7 @@
                             <span class="fas fa-trash me-1"></span>Supprimer
                         </button>
                     </form>
+                    @endcan
                 @endunless
             </div>
             <div class="card-footer d-flex justify-content-end align-items-center py-2 fs-9 text-600">

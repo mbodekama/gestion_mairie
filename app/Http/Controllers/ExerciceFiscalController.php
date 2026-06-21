@@ -15,8 +15,22 @@ use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class ExerciceFiscalController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+class ExerciceFiscalController extends Controller implements HasMiddleware
 {
+    /**
+     * Autorisation par action (spatie). Réf. catalogue : RolePermissionSeeder.
+     */
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:EXERCICE_CONSULTER', only: ['index', 'show', 'export']),
+            new Middleware('can:EXERCICE_OUVRIR', only: ['create', 'store', 'edit', 'update', 'destroy']),
+            new Middleware('can:EXERCICE_CLOTURER', only: ['cloturer']),
+        ];
+    }
+
     private const COLONNES_TRI = ['annee', 'collectivite_id', 'date_debut', 'date_fin', 'cloture'];
 
     public function index(Request $request)

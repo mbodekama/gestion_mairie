@@ -32,6 +32,7 @@ class ProductionSeeder extends Seeder
             ControleWorkflowSeeder::class,
             ReferentielContribuableSeeder::class,
             CollectiviteSeeder::class,
+            ServiceSeeder::class,
             TypeExonerationSeeder::class,
             DocTypeSeeder::class,
         ]);

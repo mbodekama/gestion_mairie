@@ -6,8 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Models\TypePersonne;
 use Illuminate\Http\Request;
 
-class TypePersonneController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+class TypePersonneController extends Controller implements HasMiddleware
 {
+    /**
+     * Autorisation par action (spatie). Réf. catalogue : RolePermissionSeeder.
+     */
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:PARAMFISC_CONSULTER', only: ['index']),
+        ];
+    }
+
     public function index(Request $request)
     {
         $query = TypePersonne::query();

@@ -24,9 +24,11 @@
                 Campagnes
                 <span class="badge bg-secondary ms-2">{{ $campagnes->total() }}</span>
             </h5>
+            @can('CONTRIB_MAILS')
             <a href="{{ route('contribuables.mails-groupes.create') }}" class="btn btn-primary">
                 <span class="fas fa-plus me-1"></span>Nouvelle campagne
             </a>
+            @endcan
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">

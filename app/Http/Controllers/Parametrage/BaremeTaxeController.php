@@ -18,8 +18,21 @@ use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class BaremeTaxeController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+class BaremeTaxeController extends Controller implements HasMiddleware
 {
+    /**
+     * Autorisation par action (spatie). Réf. catalogue : RolePermissionSeeder.
+     */
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:PARAMFISC_CONSULTER', only: ['index', 'show', 'export']),
+            new Middleware('can:PARAMFISC_GERER', only: ['create', 'store', 'edit', 'update', 'destroy']),
+        ];
+    }
+
     private const COLONNES_TRI = [
         'nature_taxe_id', 'categorie_activite_id', 'periodicite_id',
         'ca_borne_inf', 'ca_borne_sup', 'taux',

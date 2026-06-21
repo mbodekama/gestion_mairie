@@ -22,9 +22,11 @@
                         class="btn btn-success btn-sm" title="Exporter les données filtrées en Excel">
                     <span class="fas fa-file-excel me-1"></span>Exporter Excel
                 </button>
+                @can('PARAMETRE_GERER')
                 <a href="{{ route('administration.parametres.create') }}" class="btn btn-primary btn-sm">
                     <span class="fas fa-plus me-1"></span>Nouveau paramètre
                 </a>
+                @endcan
             </div>
         </div>
         <div class="card-body p-0">
@@ -66,10 +68,13 @@
                                 </td>
                                 <td>
                                     <div class="d-flex gap-1">
+                                        @can('PARAMETRE_GERER')
                                         <a href="{{ route('administration.parametres.edit', $parametre) }}"
                                            class="btn btn-sm btn-outline-warning" title="Modifier">
                                             <span class="fas fa-edit me-1"></span>Modifier
                                         </a>
+                                        @endcan
+                                        @can('PARAMETRE_GERER')
                                         <form method="POST"
                                               action="{{ route('administration.parametres.destroy', $parametre) }}"
                                               onsubmit="return confirm('Supprimer le paramètre {{ $parametre->cle }} ?')">
@@ -79,6 +84,7 @@
                                                 <span class="fas fa-trash me-1"></span>Supprimer
                                             </button>
                                         </form>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>

@@ -14,9 +14,11 @@
                 Types de personne
                 <span class="badge bg-secondary ms-2">{{ $types->total() }}</span>
             </h5>
+            @can('PARAMFISC_GERER')
             <a href="{{ route('parametrage.types-personne.create') }}" class="btn btn-primary">
                 <span class="fas fa-plus me-1"></span>Nouveau type
             </a>
+            @endcan
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -35,10 +37,13 @@
                                 <td>{{ $type->libelle }}</td>
                                 <td>
                                     <div class="d-flex gap-1">
+                                        @can('PARAMFISC_GERER')
                                         <a href="{{ route('parametrage.types-personne.edit', $type) }}"
                                            class="btn btn-sm btn-outline-warning">
                                             <span class="fas fa-edit me-1"></span>Modifier
                                         </a>
+                                        @endcan
+                                        @can('PARAMFISC_GERER')
                                         <form method="POST"
                                               action="{{ route('parametrage.types-personne.destroy', $type) }}"
                                               onsubmit="return confirm('Confirmer la suppression ?')">
@@ -47,6 +52,7 @@
                                                 <span class="fas fa-trash me-1"></span>Supprimer
                                             </button>
                                         </form>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>
@@ -62,15 +68,19 @@
                 </table>
             </div>
         </div>
-        @if ($types->hasPages())
-            <div class="card-footer d-flex justify-content-between align-items-center">
-                <small class="text-muted">
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <small class="text-muted">
+                @if ($types->hasPages())
                     Affichage de {{ $types->firstItem() }} à {{ $types->lastItem() }}
-                    sur {{ $types->total() }} type(s)
-                </small>
+                    sur {{ $types->total() }} type(s) de personne
+                @else
+                    {{ $types->total() }} type(s) de personne
+                @endif
+            </small>
+            @if ($types->hasPages())
                 {{ $types->links() }}
-            </div>
-        @endif
+            @endif
+        </div>
     </div>
 
 </x-app-layout>

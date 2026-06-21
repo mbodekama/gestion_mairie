@@ -25,8 +25,24 @@ use OpenSpout\Writer\XLSX\Writer;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 
-class EmissionTaxeController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+class EmissionTaxeController extends Controller implements HasMiddleware
 {
+    /**
+     * Autorisation par action (spatie). Réf. catalogue : RolePermissionSeeder.
+     */
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:EMISSION_CONSULTER', only: ['index', 'show', 'export', 'avis']),
+            new Middleware('can:EMISSION_CREER', only: ['create', 'store']),
+            new Middleware('can:EMISSION_LIQUIDER', only: ['liquider']),
+            new Middleware('can:EMISSION_MODIFIER', only: ['edit', 'update']),
+            new Middleware('can:EMISSION_SUPPRIMER', only: ['destroy']),
+        ];
+    }
+
     private const COLONNES_TRI = [
         'numero_emission', 'etablissement_id', 'nature_taxe_id',
         'exercice_fiscal_id', 'periodicite_id', 'montant_annuel', 'date_liquidation', 'updated_at',

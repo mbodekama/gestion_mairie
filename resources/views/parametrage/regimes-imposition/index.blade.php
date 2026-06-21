@@ -15,9 +15,11 @@
                 Régimes d'imposition
                 <span class="badge bg-secondary ms-2">{{ $regimes->total() }}</span>
             </h5>
+            @can('PARAMFISC_GERER')
             <a href="{{ route('parametrage.regimes-imposition.create') }}" class="btn btn-primary">
                 <span class="fas fa-plus me-1"></span>Nouveau régime
             </a>
+            @endcan
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -42,10 +44,13 @@
                                 <td class="text-end">{{ number_format((float) $regime->ca_borne_sup, 0, ',', ' ') }}</td>
                                 <td>
                                     <div class="d-flex gap-1">
+                                        @can('PARAMFISC_GERER')
                                         <a href="{{ route('parametrage.regimes-imposition.edit', $regime) }}"
                                            class="btn btn-sm btn-outline-warning">
                                             <span class="fas fa-edit me-1"></span>Modifier
                                         </a>
+                                        @endcan
+                                        @can('PARAMFISC_GERER')
                                         <form method="POST"
                                               action="{{ route('parametrage.regimes-imposition.destroy', $regime) }}"
                                               onsubmit="return confirm('Confirmer la suppression ?')">
@@ -54,6 +59,7 @@
                                                 <span class="fas fa-trash me-1"></span>Supprimer
                                             </button>
                                         </form>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>

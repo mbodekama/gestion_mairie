@@ -23,9 +23,11 @@
                 — {{ $etablissement->denomination }}
             @endif
         </h5>
+        @can('EMISSION_CREER')
         <a href="{{ route('emissions.create') }}" class="btn btn-outline-secondary btn-sm">
             <span class="fas fa-redo me-1"></span>Changer d'établissement
         </a>
+        @endcan
     </div>
     <div class="card-body">
         <div class="row g-3 fs-9">
@@ -57,10 +59,12 @@
                 Ce contribuable n'est assujetti à aucune obligation fiscale.
                 Assignez-lui d'abord une nature de taxe.
             </p>
+            @can('PILOTAGE_GERER')
             <a href="{{ route('pilotage.obligations.create', ['code' => $contrib->numero_identifiant]) }}"
                class="btn btn-primary">
                 <span class="fas fa-tasks me-1"></span>Gérer les obligations
             </a>
+            @endcan
         </div>
     </div>
 @else

@@ -37,7 +37,7 @@
     </div>
     <div class="card-body">
         <div class="row g-3">
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <label class="form-label fs-9">Fonction</label>
                 <select name="fonction_agent_id" class="form-select form-select-lg @error('fonction_agent_id') is-invalid @enderror">
                     <option value="">— Aucune —</option>
@@ -47,17 +47,7 @@
                 </select>
                 @error('fonction_agent_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
-            <div class="col-md-4">
-                <label class="form-label fs-9">Grade</label>
-                <select name="grade_agent_id" class="form-select form-select-lg @error('grade_agent_id') is-invalid @enderror">
-                    <option value="">— Aucun —</option>
-                    @foreach ($grades as $g)
-                        <option value="{{ $g->id }}" {{ $val('grade_agent_id') == $g->id ? 'selected' : '' }}>{{ $g->libelle }}</option>
-                    @endforeach
-                </select>
-                @error('grade_agent_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
-            </div>
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <label class="form-label fs-9">Service</label>
                 <select name="service_id" class="form-select form-select-lg @error('service_id') is-invalid @enderror">
                     <option value="">— Aucun —</option>

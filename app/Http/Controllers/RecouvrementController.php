@@ -29,8 +29,22 @@ use OpenSpout\Writer\XLSX\Writer;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 
-class RecouvrementController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+class RecouvrementController extends Controller implements HasMiddleware
 {
+    /**
+     * Autorisation par action (spatie). Réf. catalogue : RolePermissionSeeder.
+     */
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:RECOUVR_CONSULTER', only: ['index', 'show', 'export', 'quittance']),
+            new Middleware('can:RECOUVR_ENCAISSER', only: ['create', 'store', 'edit', 'update']),
+            new Middleware('can:RECOUVR_ANNULER', only: ['annuler', 'destroy']),
+        ];
+    }
+
     private const COLONNES_TRI = [
         'numero_reglement', 'exercice_fiscal_id', 'date_reglement',
         'mode_reglement_id', 'type_reglement_id',

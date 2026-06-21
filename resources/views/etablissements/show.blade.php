@@ -59,20 +59,26 @@
             </div>
 
             <div class="d-flex flex-column flex-sm-row gap-2 flex-shrink-0">
+                @can('ETAB_MODIFIER')
                 <a href="{{ route('etablissements.edit', $etablissement) }}"
                    class="btn btn-light btn-sm">
                     <span class="fas fa-edit me-1"></span>Modifier
                 </a>
+                @endcan
+                @can('EMISSION_CREER')
                 <a href="{{ route('emissions.create', ['etablissement_id' => $etablissement->id]) }}"
                    class="btn btn-light btn-sm">
                     <span class="fas fa-plus me-1"></span>Émission
                 </a>
+                @endcan
+                @can('ETAB_SUPPRIMER')
                 <x-suppression
                     :action="route('etablissements.destroy', $etablissement)"
                     :bloquee="$suppressionBloquee"
                     raison="Rattaché à des émissions / recouvrements : suppression impossible."
                     libelle="cet établissement"
                     id="modalSuppEtab" />
+                @endcan
                 <a href="{{ route('contribuables.show', $contrib) }}"
                    class="btn btn-outline-light btn-sm">
                     <span class="fas fa-arrow-left me-1"></span>Retour
@@ -298,10 +304,12 @@
             Émissions de taxe
             <span class="badge bg-secondary ms-2">{{ $etablissement->emissionsTaxe->count() }}</span>
         </h5>
+        @can('EMISSION_CREER')
         <a href="{{ route('emissions.create', ['etablissement_id' => $etablissement->id]) }}"
            class="btn btn-primary btn-sm">
             <span class="fas fa-plus me-1"></span>Nouvelle émission
         </a>
+        @endcan
     </div>
     @if ($etablissement->emissionsTaxe->isEmpty())
         <div class="card-body text-center py-4 text-500 fs-9">

@@ -25,8 +25,23 @@ use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class ContribuableController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+class ContribuableController extends Controller implements HasMiddleware
 {
+    /**
+     * Autorisation par action (spatie). Réf. catalogue : RolePermissionSeeder.
+     */
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:CONTRIB_CONSULTER', only: ['index', 'show', 'export']),
+            new Middleware('can:CONTRIB_CREER', only: ['create', 'store']),
+            new Middleware('can:CONTRIB_MODIFIER', only: ['edit', 'update']),
+            new Middleware('can:CONTRIB_SUPPRIMER', only: ['destroy']),
+        ];
+    }
+
     private const COLONNES_TRI = [
         'numero_identifiant', 'numero_compte', 'type_personne', 'nom',
         'cellulaire', 'regime_imposition_id', 'statut', 'updated_at',

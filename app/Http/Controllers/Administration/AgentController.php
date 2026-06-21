@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Administration;
 use App\Http\Controllers\Controller;
 use App\Http\FiltreDataForm\AgentFiltreForm;
 use App\Http\Requests\AgentRequest;
+use App\Models\AuditLog;
 use App\Models\Agent;
 use App\Models\Collectivite;
 use App\Models\FonctionAgent;
 use App\Models\GradeAgent;
 use App\Models\Service;
+use App\Services\AuditService;
 use App\Services\ExcelExportService;
 use App\Services\SelectOptionsService;
 use Illuminate\Http\RedirectResponse;
@@ -20,14 +22,32 @@ use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class AgentController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+class AgentController extends Controller implements HasMiddleware
 {
+    /**
+     * Autorisation par action (spatie). Réf. catalogue : RolePermissionSeeder.
+     */
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:AGENT_CONSULTER', only: ['index', 'show', 'export']),
+            new Middleware('can:AGENT_CREER', only: ['create', 'store']),
+            new Middleware('can:AGENT_MODIFIER', only: ['edit', 'update']),
+            new Middleware('can:AGENT_SUPPRIMER', only: ['destroy']),
+        ];
+    }
+
     private const COLONNES_TRI = [
         'matricule', 'nom', 'prenoms', 'service_id',
         'fonction_agent_id', 'grade_agent_id', 'actif', 'created_at',
     ];
 
-    public function __construct(private SelectOptionsService $selectOptions) {}
+    public function __construct(
+        private SelectOptionsService $selectOptions,
+        private AuditService $audit,
+    ) {}
 
     public function index(Request $request)
     {
@@ -68,9 +88,31 @@ class AgentController extends Controller
 
     public function show(Agent $agent): View
     {
-        $agent->load(['fonctionAgent', 'gradeAgent', 'service', 'superieur', 'subordonnes', 'utilisateurs']);
+        $agent->load(['fonctionAgent', 'gradeAgent', 'service', 'superieur', 'subordonnes', 'utilisateurs.roles']);
 
-        return view('administration.agents.show', compact('agent'));
+        $actionsRecentes = $this->actionsRecentes($agent);
+
+        return view('administration.agents.show', compact('agent', 'actionsRecentes'));
+    }
+
+    /**
+     * Actions récentes journalisées concernant l'agent : modifications de sa
+     * fiche et événements sur ses comptes utilisateurs rattachés.
+     */
+    private function actionsRecentes(Agent $agent)
+    {
+        $comptesIds = $agent->utilisateurs->pluck('id')->map(fn ($id) => (string) $id)->all();
+
+        return AuditLog::with('utilisateur')
+            ->where(function ($q) use ($agent, $comptesIds): void {
+                $q->where(fn ($x) => $x->where('table_cible', 'agent')->where('cle_ligne', (string) $agent->id));
+                if ($comptesIds) {
+                    $q->orWhere(fn ($x) => $x->where('table_cible', 'users')->whereIn('cle_ligne', $comptesIds));
+                }
+            })
+            ->orderByDesc('horodatage')
+            ->limit(10)
+            ->get();
     }
 
     public function edit(Agent $agent): View
@@ -83,7 +125,23 @@ class AgentController extends Controller
 
     public function update(AgentRequest $request, Agent $agent): RedirectResponse
     {
+        $avant = $agent->getOriginal();
+
         $agent->update($request->validated());
+
+        // Journalise la modification de fiche uniquement si l'agent est rattaché
+        // à au moins un compte utilisateur.
+        $modifs = collect($agent->getChanges())->except('updated_at');
+
+        if ($modifs->isNotEmpty() && $agent->utilisateurs()->exists()) {
+            $this->audit->enregistrer(
+                'agent',
+                $agent->id,
+                'UPDATE',
+                collect($avant)->only($modifs->keys())->all(),
+                $modifs->all() + ['_evenement' => 'Modification de la fiche agent'],
+            );
+        }
 
         return redirect()->route('agents.show', $agent)
             ->with('success', 'Agent ' . $agent->matricule . ' mis à jour.');

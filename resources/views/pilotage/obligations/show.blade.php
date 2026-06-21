@@ -18,9 +18,11 @@
             <span class="fas fa-tasks me-2 text-primary"></span>{{ $nomContrib }}
         </h5>
         <div class="d-flex gap-2">
+            @can('PILOTAGE_GERER')
             <a href="{{ route('pilotage.obligations.edit', $obligation) }}" class="btn btn-outline-warning btn-sm">
                 <span class="fas fa-edit me-1"></span>Modifier
             </a>
+            @endcan
             <a href="{{ route('pilotage.obligations.index') }}" class="btn btn-outline-secondary btn-sm">
                 <span class="fas fa-arrow-left me-1"></span>Retour
             </a>
@@ -56,6 +58,7 @@
     </div>
     <div class="card-footer d-flex justify-content-between align-items-center">
         <span class="fs-9 text-600"><span class="fas fa-clock me-1"></span>Créée le {{ $obligation->created_at?->format('d/m/Y') ?? '—' }}</span>
+        @can('PILOTAGE_GERER')
         <form method="POST" action="{{ route('pilotage.obligations.destroy', $obligation) }}"
               onsubmit="return confirm('Supprimer cette obligation fiscale ?')">
             @csrf @method('DELETE')
@@ -63,6 +66,7 @@
                 <span class="fas fa-trash me-1"></span>Supprimer
             </button>
         </form>
+        @endcan
     </div>
 </div>
 

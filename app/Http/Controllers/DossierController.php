@@ -14,8 +14,20 @@ use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class DossierController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+class DossierController extends Controller implements HasMiddleware
 {
+    /**
+     * Autorisation par action (spatie). Réf. catalogue : RolePermissionSeeder.
+     */
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:DOSSIER_CONSULTER', only: ['index', 'export']),
+        ];
+    }
+
     private const COLONNES_TRI = [
         'numero', 'etablissement_id', 'famille_etat_dossier_id',
         'categorie_etat_dossier_id', 'date_creation', 'archive', 'created_at',

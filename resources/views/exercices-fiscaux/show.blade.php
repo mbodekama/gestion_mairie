@@ -39,10 +39,13 @@
 
             <div class="d-flex flex-column flex-sm-row gap-2 flex-shrink-0">
                 @if (!$exerciceFiscal->cloture)
+                    @can('EXERCICE_OUVRIR')
                     <a href="{{ route('exercices-fiscaux.edit', $exerciceFiscal) }}"
                        class="btn btn-light btn-sm">
                         <span class="fas fa-edit me-1"></span>Modifier
                     </a>
+                    @endcan
+                    @can('EXERCICE_CLOTURER')
                     <form method="POST" action="{{ route('exercices-fiscaux.cloturer', $exerciceFiscal) }}"
                           onsubmit="return confirm('Clôturer l\'exercice {{ $exerciceFiscal->annee }} ? Cette action est irréversible.')">
                         @csrf
@@ -50,6 +53,7 @@
                             <span class="fas fa-lock me-1"></span>Clôturer
                         </button>
                     </form>
+                    @endcan
                 @endif
                 <a href="{{ route('exercices-fiscaux.index') }}"
                    class="btn btn-outline-light btn-sm">
@@ -121,10 +125,12 @@
             <span class="badge bg-secondary ms-2">{{ $nbEmissions }}</span>
         </h5>
         @if (!$exerciceFiscal->cloture)
+            @can('EMISSION_CREER')
             <a href="{{ route('emissions.create', ['exercice_fiscal_id' => $exerciceFiscal->id]) }}"
                class="btn btn-primary btn-sm">
                 <span class="fas fa-plus me-1"></span>Nouvelle émission
             </a>
+            @endcan
         @endif
     </div>
     @if ($emissions->isEmpty())

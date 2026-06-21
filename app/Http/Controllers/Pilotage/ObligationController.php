@@ -20,8 +20,21 @@ use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class ObligationController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+class ObligationController extends Controller implements HasMiddleware
 {
+    /**
+     * Autorisation par action (spatie). Réf. catalogue : RolePermissionSeeder.
+     */
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:PILOTAGE_CONSULTER', only: ['index', 'show', 'export']),
+            new Middleware('can:PILOTAGE_GERER', only: ['create', 'store', 'edit', 'update', 'destroy']),
+        ];
+    }
+
     private const COLONNES_TRI = [
         'contribuable_id', 'nature_taxe_id', 'periodicite_id', 'created_at',
     ];

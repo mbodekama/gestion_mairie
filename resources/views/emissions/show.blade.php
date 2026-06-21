@@ -57,20 +57,26 @@
                     <span class="fas fa-file-pdf me-1"></span>Avis
                 </a>
                 @if (!$emission->exerciceFiscal?->cloture)
+                    @can('EMISSION_MODIFIER')
                     <a href="{{ route('emissions.edit', $emission) }}"
                        class="btn btn-light btn-sm">
                         <span class="fas fa-edit me-1"></span>Modifier
                     </a>
+                    @endcan
+                    @can('RECOUVR_ENCAISSER')
                     <a href="{{ route('recouvrements.create', ['emission_taxe_id' => $emission->id]) }}"
                        class="btn btn-light btn-sm">
                         <span class="fas fa-plus me-1"></span>Règlement
                     </a>
+                    @endcan
+                    @can('EMISSION_SUPPRIMER')
                     <x-suppression
                         :action="route('emissions.destroy', $emission)"
                         :bloquee="$suppressionBloquee"
                         raison="Émission rattachée à des recouvrements : suppression impossible."
                         libelle="cette émission"
                         id="modalSuppEmission" />
+                    @endcan
                 @endif
                 <a href="{{ $emission->etablissement ? route('etablissements.show', $emission->etablissement) : route('emissions.index') }}"
                    class="btn btn-outline-light btn-sm">
@@ -245,14 +251,18 @@
             <div class="card-body">
                 <div class="d-grid gap-2">
                     @if (!$emission->exerciceFiscal?->cloture)
+                        @can('RECOUVR_ENCAISSER')
                         <a href="{{ route('recouvrements.create', ['emission_taxe_id' => $emission->id]) }}"
                            class="btn btn-success btn-sm">
                             <span class="fas fa-plus me-1"></span>Enregistrer un règlement
                         </a>
+                        @endcan
+                        @can('EMISSION_MODIFIER')
                         <a href="{{ route('emissions.edit', $emission) }}"
                            class="btn btn-outline-primary btn-sm">
                             <span class="fas fa-edit me-1"></span>Modifier l'émission
                         </a>
+                        @endcan
                     @endif
                 </div>
 
@@ -281,10 +291,12 @@
             <span class="badge bg-secondary ms-2">{{ $emission->reglements->count() }}</span>
         </h5>
         @if (!$emission->exerciceFiscal?->cloture)
+            @can('RECOUVR_ENCAISSER')
             <a href="{{ route('recouvrements.create', ['emission_taxe_id' => $emission->id]) }}"
                class="btn btn-success btn-sm">
                 <span class="fas fa-plus me-1"></span>Nouveau règlement
             </a>
+            @endcan
         @endif
     </div>
     @if ($emission->reglements->isEmpty())
@@ -328,6 +340,7 @@
                                            class="btn btn-sm btn-outline-primary py-0 px-2">
                                             <span class="fas fa-eye"></span>
                                         </a>
+                                        @can('RECOUVR_ANNULER')
                                         <form method="POST" action="{{ route('recouvrements.destroy', $r) }}"
                                               onsubmit="return confirm('Supprimer ce règlement ?')">
                                             @csrf @method('DELETE')
@@ -336,6 +349,7 @@
                                                 <span class="fas fa-trash"></span>
                                             </button>
                                         </form>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>

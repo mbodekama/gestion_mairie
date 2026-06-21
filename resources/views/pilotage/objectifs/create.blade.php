@@ -35,18 +35,10 @@
                 </div>
 
                 {{-- Période couverte --}}
-                <div class="col-md-4">
-                    <label class="form-label fs-9">Période — du <span class="text-danger">*</span></label>
-                    <input type="date" name="periode_debut" id="periode-debut" value="{{ old('periode_debut') }}"
-                           class="form-control form-control-lg @error('periode_debut') is-invalid @enderror" required>
-                    @error('periode_debut') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fs-9">Période — au <span class="text-danger">*</span></label>
-                    <input type="date" name="periode_fin" id="periode-fin" value="{{ old('periode_fin') }}"
-                           class="form-control form-control-lg @error('periode_fin') is-invalid @enderror" required>
-                    @error('periode_fin') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                </div>
+                <x-date-picker name="periode_debut" label="Période — du" col="col-md-4"
+                               :required="true" label-class="fs-9" />
+                <x-date-picker name="periode_fin" label="Période — au" col="col-md-4"
+                               :required="true" label-class="fs-9" />
 
                 {{-- Montants --}}
                 <div class="col-md-4">
@@ -79,31 +71,7 @@
 </form>
 
 @push('scripts')
-    <script>
-        // À la sélection d'un exercice : borne les dates de période et, si elles
-        // sont vides, les pré-remplit avec la période complète de l'exercice.
-        (function () {
-            const select = document.getElementById('exercice-select');
-            const debut  = document.getElementById('periode-debut');
-            const fin    = document.getElementById('periode-fin');
-            if (!select) return;
-
-            function appliquer(prefill) {
-                const opt = select.options[select.selectedIndex];
-                const d = opt ? opt.dataset.debut : '';
-                const f = opt ? opt.dataset.fin : '';
-                debut.min = fin.min = d || '';
-                debut.max = fin.max = f || '';
-                if (prefill && d && f) {
-                    if (!debut.value) debut.value = d;
-                    if (!fin.value) fin.value = f;
-                }
-            }
-
-            select.addEventListener('change', () => appliquer(true));
-            appliquer(false); // au chargement, ne touche pas aux valeurs saisies
-        })();
-    </script>
+    <x-objectifs.periode-script />
 @endpush
 
 </x-app-layout>

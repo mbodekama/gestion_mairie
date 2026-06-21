@@ -25,15 +25,12 @@
             <div class="row g-3 align-items-end">
                 <div class="col-md-6">
                     <label class="form-label fs-9">
-                        Numéro d'établissement <span class="text-danger">*</span>
+                        Identification (saisissez le Num établissement) <span class="text-danger">*</span>
                     </label>
                     <input type="text" name="code" value="{{ $code ?? '' }}"
                            class="form-control form-control-lg"
                            placeholder="Ex : ET20260001"
                            autofocus required style="text-transform:uppercase">
-                    <small class="text-muted">
-                        Numéro de l'établissement à imposer.
-                    </small>
                 </div>
                 <div class="col-md-3">
                     <button type="submit" class="btn btn-primary btn-lg w-100">

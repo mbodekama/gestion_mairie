@@ -26,9 +26,11 @@
                         class="btn btn-success btn-sm" title="Exporter les données filtrées en Excel">
                     <span class="fas fa-file-excel me-1"></span>Exporter Excel
                 </button>
+                @can('PARAMFISC_GERER')
                 <a href="{{ route('referentiel.parametrage.create') }}" class="btn btn-primary">
                     <span class="fas fa-plus me-1"></span>Nouvelle nature de taxe
                 </a>
+                @endcan
             </div>
         </div>
         <div class="card-body p-0">
@@ -81,10 +83,13 @@
                                            class="btn btn-sm btn-outline-info" title="Voir le détail">
                                             <span class="fas fa-eye me-1"></span>Voir
                                         </a>
+                                        @can('PARAMFISC_GERER')
                                         <a href="{{ route('referentiel.parametrage.edit', $nature) }}"
                                            class="btn btn-sm btn-outline-warning" title="Modifier">
                                             <span class="fas fa-edit me-1"></span>Modifier
                                         </a>
+                                        @endcan
+                                        @can('PARAMFISC_GERER')
                                         <form method="POST"
                                               action="{{ route('referentiel.parametrage.destroy', $nature) }}"
                                               onsubmit="return confirm('Confirmer la suppression de {{ $nature->code }} ?')">
@@ -94,6 +99,7 @@
                                                 <span class="fas fa-trash me-1"></span>Supprimer
                                             </button>
                                         </form>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>

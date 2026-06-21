@@ -46,10 +46,12 @@
                             <span class="fas fa-file-pdf me-1"></span>Quittance PDF
                         </a>
                     @endif
+                    @can('RECOUVR_ANNULER')
                     <button type="button" class="btn btn-danger btn-sm"
                             data-bs-toggle="modal" data-bs-target="#modalAnnulation">
                         <span class="fas fa-ban me-1"></span>Annuler
                     </button>
+                    @endcan
                 @endunless
                 @if ($emission)
                     <a href="{{ route('emissions.show', $emission) }}"
@@ -229,6 +231,7 @@
 />
 
 @unless ($recouvrement->estAnnule())
+    @can('RECOUVR_ANNULER')
     {{-- Modal d'annulation --}}
     <div class="modal fade" id="modalAnnulation" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
@@ -263,6 +266,7 @@
     @error('motif_annulation')
         <script>document.addEventListener('DOMContentLoaded', () => new bootstrap.Modal(document.getElementById('modalAnnulation')).show());</script>
     @enderror
+    @endcan
 @endunless
 
 </x-app-layout>

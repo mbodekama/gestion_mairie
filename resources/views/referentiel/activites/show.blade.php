@@ -12,10 +12,12 @@
                     <span class="fas fa-industry me-2 text-primary"></span>Activité économique
                 </h5>
                 <div class="d-flex gap-2">
+                    @can('ACTIVITE_GERER')
                     <a href="{{ route('referentiel.activites.edit', $activite) }}"
                        class="btn btn-outline-primary btn-sm">
                         <span class="fas fa-edit me-1"></span>Modifier
                     </a>
+                    @endcan
                     <a href="{{ route('referentiel.activites.index') }}"
                        class="btn btn-outline-secondary btn-sm">
                         <span class="fas fa-arrow-left me-1"></span>Liste
@@ -59,6 +61,7 @@
 
                 <div class="mt-4 pt-3 border-top">
                     @if ($nbEtablissements === 0)
+                        @can('ACTIVITE_GERER')
                         <form method="POST" action="{{ route('referentiel.activites.destroy', $activite) }}"
                               onsubmit="return confirm('Supprimer l\'activité {{ addslashes($activite->libelle) }} ?')">
                             @csrf @method('DELETE')
@@ -66,6 +69,7 @@
                                 <span class="fas fa-trash me-1"></span>Supprimer cette activité
                             </button>
                         </form>
+                        @endcan
                     @else
                         <p class="text-500 fs-9 mb-0 text-center">
                             <span class="fas fa-lock me-1"></span>

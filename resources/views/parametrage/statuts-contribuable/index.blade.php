@@ -14,9 +14,11 @@
                 Statuts contribuable
                 <span class="badge bg-secondary ms-2">{{ $statuts->total() }}</span>
             </h5>
+            @can('PARAMFISC_GERER')
             <a href="{{ route('parametrage.statuts-contribuable.create') }}" class="btn btn-primary">
                 <span class="fas fa-plus me-1"></span>Nouveau statut
             </a>
+            @endcan
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -35,10 +37,13 @@
                                 <td>{{ $statut->libelle }}</td>
                                 <td>
                                     <div class="d-flex gap-1">
+                                        @can('PARAMFISC_GERER')
                                         <a href="{{ route('parametrage.statuts-contribuable.edit', $statut) }}"
                                            class="btn btn-sm btn-outline-warning">
                                             <span class="fas fa-edit me-1"></span>Modifier
                                         </a>
+                                        @endcan
+                                        @can('PARAMFISC_GERER')
                                         <form method="POST"
                                               action="{{ route('parametrage.statuts-contribuable.destroy', $statut) }}"
                                               onsubmit="return confirm('Confirmer la suppression ?')">
@@ -47,6 +52,7 @@
                                                 <span class="fas fa-trash me-1"></span>Supprimer
                                             </button>
                                         </form>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>
@@ -62,15 +68,19 @@
                 </table>
             </div>
         </div>
-        @if ($statuts->hasPages())
-            <div class="card-footer d-flex justify-content-between align-items-center">
-                <small class="text-muted">
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <small class="text-muted">
+                @if ($statuts->hasPages())
                     Affichage de {{ $statuts->firstItem() }} à {{ $statuts->lastItem() }}
                     sur {{ $statuts->total() }} statut(s)
-                </small>
+                @else
+                    {{ $statuts->total() }} statut(s) contribuable
+                @endif
+            </small>
+            @if ($statuts->hasPages())
                 {{ $statuts->links() }}
-            </div>
-        @endif
+            @endif
+        </div>
     </div>
 
 </x-app-layout>

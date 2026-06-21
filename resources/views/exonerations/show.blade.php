@@ -28,9 +28,11 @@
             @endif
         </h5>
         <div class="d-flex gap-2">
+            @can('EXO_MODIFIER')
             <a href="{{ route('exonerations.edit', $exoneration) }}" class="btn btn-outline-warning btn-sm">
                 <span class="fas fa-edit me-1"></span>Modifier
             </a>
+            @endcan
             <a href="{{ route('exonerations.index') }}" class="btn btn-outline-secondary btn-sm">
                 <span class="fas fa-arrow-left me-1"></span>Retour
             </a>
@@ -74,6 +76,7 @@
     </div>
     <div class="card-footer d-flex justify-content-between align-items-center">
         <span class="fs-9 text-600"><span class="fas fa-clock me-1"></span>Mis à jour le {{ $exoneration->updated_at?->format('d/m/Y') ?? '—' }}</span>
+        @can('EXO_SUPPRIMER')
         <form method="POST" action="{{ route('exonerations.destroy', $exoneration) }}"
               onsubmit="return confirm('Supprimer l\'exonération {{ $exoneration->numero }} ?')">
             @csrf @method('DELETE')
@@ -81,6 +84,7 @@
                 <span class="fas fa-trash me-1"></span>Supprimer
             </button>
         </form>
+        @endcan
     </div>
 </div>
 

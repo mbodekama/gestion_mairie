@@ -57,6 +57,10 @@ class RolePermissionSeeder extends Seeder
             'COLLECTIVITE_CONSULTER', 'COLLECTIVITE_GERER',
             // Agents
             'AGENT_CONSULTER', 'AGENT_CREER', 'AGENT_MODIFIER', 'AGENT_SUPPRIMER',
+            // Services (unités d'organisation)
+            'SERVICE_CONSULTER', 'SERVICE_GERER',
+            // Paramètres applicatifs
+            'PARAMETRE_CONSULTER', 'PARAMETRE_GERER',
             // Sécurité / utilisateurs
             'SECURITE_CONSULTER', 'SECURITE_GERER_UTILISATEUR', 'SECURITE_GERER_ROLE', 'SECURITE_RESET_MDP',
             // Pilotage / objectifs
@@ -159,6 +163,8 @@ class RolePermissionSeeder extends Seeder
         ]);
 
         // 3. Utilisateurs de démarrage (un par rôle, mot de passe : password)
+        //    Comptes actifs par défaut ; un compte désactivé (actif = false) ne
+        //    peut pas se connecter (cf. LoginRequest).
         $utilisateurs = [
             ['name' => 'Administrateur Système', 'email' => 'admin@mairie.ci',       'role' => 'ADMIN'],
             ['name' => 'Responsable Fiscal',     'email' => 'respfisc@mairie.ci',    'role' => 'ADMIN_FISC'],
@@ -174,7 +180,7 @@ class RolePermissionSeeder extends Seeder
         foreach ($utilisateurs as $data) {
             $user = User::firstOrCreate(
                 ['email' => $data['email']],
-                ['name' => $data['name'], 'password' => Hash::make('password')]
+                ['name' => $data['name'], 'password' => Hash::make('password'), 'actif' => true]
             );
             if (! $user->hasRole($data['role'])) {
                 $user->assignRole($data['role']);

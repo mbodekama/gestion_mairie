@@ -13,10 +13,12 @@
                     <span class="fas fa-balance-scale me-2 text-primary"></span>Nature de taxe
                 </h5>
                 <div class="d-flex gap-2">
+                    @can('PARAMFISC_GERER')
                     <a href="{{ route('referentiel.parametrage.edit', $natureTaxe) }}"
                        class="btn btn-outline-primary btn-sm">
                         <span class="fas fa-edit me-1"></span>Modifier
                     </a>
+                    @endcan
                     <a href="{{ route('referentiel.parametrage.index') }}"
                        class="btn btn-outline-secondary btn-sm">
                         <span class="fas fa-arrow-left me-1"></span>Liste
@@ -52,6 +54,7 @@
 
                 <div class="mt-3">
                     @if ($nbEmissions === 0)
+                        @can('PARAMFISC_GERER')
                         <form method="POST" action="{{ route('referentiel.parametrage.destroy', $natureTaxe) }}"
                               onsubmit="return confirm('Supprimer la nature de taxe {{ $natureTaxe->code }} ?')">
                             @csrf @method('DELETE')
@@ -59,6 +62,7 @@
                                 <span class="fas fa-trash me-1"></span>Supprimer
                             </button>
                         </form>
+                        @endcan
                     @else
                         <p class="text-500 fs-9 mb-0 text-center">
                             <span class="fas fa-lock me-1"></span>Suppression impossible : {{ $nbEmissions }} émission(s)

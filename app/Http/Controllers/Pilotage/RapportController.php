@@ -11,8 +11,20 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 
-class RapportController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+class RapportController extends Controller implements HasMiddleware
 {
+    /**
+     * Autorisation par action (spatie). Réf. catalogue : RolePermissionSeeder.
+     */
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:PILOTAGE_CONSULTER', only: ['index', 'exonerations']),
+        ];
+    }
+
     public function index(): View
     {
         $exercices = ExerciceFiscal::orderBy('annee', 'desc')->get();
